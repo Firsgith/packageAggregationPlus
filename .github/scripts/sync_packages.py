@@ -6,34 +6,24 @@ from pathlib import Path
 # 定义记录已同步路径的文件
 SYNCED_PATHS_FILE = ".github/synced_paths"
 
-def clean_existing_files():
+def clean_existing_files(synced_paths):
     """
     清理主仓库中已存在的、由 .synced_paths 文件定义的文件或目录。
+    :param synced_paths: 已同步的路径列表
     """
     print("Cleaning existing files and directories...")
-    if not os.path.exists(SYNCED_PATHS_FILE):
-        print(f"No synced paths found in {SYNCED_PATHS_FILE}. Skipping cleanup.")
-        return
+    for target_path in synced_paths:
+        target_path = os.path.join(".", target_path)
+        if not target_path or os.path.abspath(target_path) == os.path.abspath("."):
+            print(f"Skipping removal of current working directory: {target_path}")
+            continue
 
-    with open(SYNCED_PATHS_FILE, "r") as file:
-        for line in file:
-            line = line.strip()
-            if not line:
-                continue
-
-            target_path = os.path.join(".", line)
-
-            # 跳过当前工作目录（"."）
-            if os.path.abspath(target_path) == os.path.abspath("."):
-                print(f"Skipping removal of current working directory: {target_path}")
-                continue
-
-            if os.path.exists(target_path):
-                print(f"Removing existing path: {target_path}")
-                if os.path.isdir(target_path):
-                    shutil.rmtree(target_path)
-                else:
-                    os.remove(target_path)
+        if os.path.exists(target_path):
+            print(f"Removing existing path: {target_path}")
+            if os.path.isdir(target_path):
+                shutil.rmtree(target_path)
+            else:
+                os.remove(target_path)
 
 def is_submodule(temp_dir, sub_dir):
     """
@@ -152,10 +142,16 @@ def sync_repositories(packages_file):
             # 确保目标路径的父目录存在
             Path(target_path).parent.mkdir(parents=True, exist_ok=True)
 
+            # 清理目标路径（仅删除当前路径，不删除父目录）
+            if os.path.exists(target_path):
+                print(f"Cleaning up existing target path: {target_path}")
+                if os.path.isdir(target_path):
+                    shutil.rmtree(target_path)
+                else:
+                    os.remove(target_path)
+
             # 复制文件到目标路径
             print(f"Copying folder {source_path} to {target_path}...")
-            if os.path.exists(target_path):
-                shutil.rmtree(target_path)  # 如果目标路径已存在，先删除
             shutil.copytree(source_path, target_path, dirs_exist_ok=True)
 
             # 记录本次同步的路径
@@ -175,7 +171,10 @@ if __name__ == "__main__":
     packages_file = "packages"
 
     # 清理已存在的内容
-    clean_existing_files()
+    if os.path.exists(SYNCED_PATHS_FILE):
+        with open(SYNCED_PATHS_FILE, "r") as file:
+            synced_paths = [line.strip() for line in file if line.strip()]
+        clean_existing_files(synced_paths)
 
     # 同步新的内容
     sync_repositories(packages_file)

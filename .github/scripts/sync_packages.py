@@ -1,6 +1,7 @@
 import os
 import subprocess
 import shutil
+from pathlib import Path
 
 # 定义记录已同步路径的文件
 SYNCED_PATHS_FILE = ".github/synced_paths"
@@ -73,6 +74,23 @@ def handle_submodule(temp_dir, sub_dir):
     # Clone the submodule's content into the same directory
     subprocess.run(["git", "clone", submodule_url, f"{temp_dir}/{sub_dir}"], check=True)
 
+def parse_line(line):
+    """
+    解析一行输入，提取仓库地址、子目录路径和目标路径。
+    :param line: 输入行
+    :return: (repo_url, sub_dir, target_path)
+    """
+    line = line.strip().rstrip(";")  # 去掉末尾的分号
+    if not line or line.startswith("#"):
+        return None, None, None
+
+    parts = line.split(",", 2)
+    repo_url = parts[0].strip()
+    sub_dir = parts[1].strip() if len(parts) > 1 else None
+    target_path = parts[2].split("=")[1].strip() if len(parts) > 2 and "=" in parts[2] else sub_dir
+
+    return repo_url, sub_dir, target_path
+
 def sync_repositories(packages_file):
     """
     同步 packages 文件中定义的仓库内容到主仓库。
@@ -87,20 +105,12 @@ def sync_repositories(packages_file):
 
     with open(packages_file, "r") as file:
         for line in file:
-            line = line.strip()
-            # 跳过空行和注释行
-            if not line or line.startswith("#"):
+            repo_url, sub_dir, target_path = parse_line(line)
+            if not repo_url:
                 continue
 
-            # 分割仓库地址、子目录路径和目标路径
-            if ";" not in line:
-                print(f"Invalid line format: {line}")
-                continue
-            line = line.rstrip(";")  # 去掉末尾的分号
-            parts = line.split(",", 2)
-            repo_url = parts[0].strip()
-            folder_path = parts[1].strip() if len(parts) > 1 else None
-            target_path = parts[2].split("=")[1].strip() if len(parts) > 2 and "=" in parts[2] else None
+            print(f"Parsing line: {line}")
+            print(f"Repo URL: {repo_url}, Sub Dir: {sub_dir}, Target Path: {target_path}")
 
             # 提取仓库名称作为临时目录名
             repo_name = os.path.basename(repo_url).replace(".git", "")
@@ -120,7 +130,7 @@ def sync_repositories(packages_file):
                 shutil.rmtree(git_dir)
 
             # 确定需要复制的源路径
-            source_path = os.path.join(temp_dir, folder_path) if folder_path else temp_dir
+            source_path = os.path.join(temp_dir, sub_dir) if sub_dir else temp_dir
             target_path = os.path.join(".", target_path or os.path.basename(source_path))
 
             # 检查源路径是否存在
@@ -130,8 +140,11 @@ def sync_repositories(packages_file):
                 continue
 
             # 如果是子模块，手动克隆其内容
-            if is_submodule(temp_dir, folder_path):
-                handle_submodule(temp_dir, folder_path)
+            if is_submodule(temp_dir, sub_dir):
+                handle_submodule(temp_dir, sub_dir)
+
+            # 确保目标路径的父目录存在
+            Path(target_path).parent.mkdir(parents=True, exist_ok=True)
 
             # 复制文件到目标路径
             print(f"Copying folder {source_path} to {target_path}...")

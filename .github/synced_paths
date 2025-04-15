@@ -6,4 +6,4 @@ luci-app-tailscale
 luci-app-wolplus
 luci-app-poweroffdevice
 luci-app-easytier
-luci-app-strongswan-swanctl
+applications/luci-app-strongswan-swanctl

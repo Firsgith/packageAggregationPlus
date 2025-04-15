@@ -1,1 +1,13 @@
-themes/luci-theme-argon
+luci-app-ddns-go
+luci-app-zerotierV2
+themes/luci-theme-bootstrap
+luci-app-cifs-mount
+luci-app-tailscale
+luci-app-wolplus
+theme/luci-theme-argon.git
+linkease/nas-packages
+linkease/nas-packages-luci
+linkease/istore
+luci-app-poweroffdevice
+luci-app-easytier
+luci-app-strongswan-swanctl

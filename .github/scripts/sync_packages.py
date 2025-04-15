@@ -82,6 +82,9 @@ def parse_line(line):
     sub_dir = None
     target_path = None
 
+    # 提取仓库名（去掉 .git 后缀）
+    repo_name = os.path.basename(repo_url).replace(".git", "")
+
     # 遍历剩余部分，处理子目录路径和目标路径
     for part in parts[1:]:
         part = part.strip()
@@ -93,9 +96,20 @@ def parse_line(line):
             # 如果没有 path=，则认为这是子目录路径
             sub_dir = part
 
-    # 如果没有指定目标路径，默认使用子目录路径的最后一部分
-    if not target_path and sub_dir:
+    # 目标路径的生成逻辑
+    if target_path:
+        if sub_dir:
+            # 如果有子目录路径，则目标路径为 path/sub_dir的最后一部分
+            target_path = os.path.join(target_path, os.path.basename(sub_dir))
+        else:
+            # 如果没有子目录路径，则目标路径为 path/仓库名
+            target_path = os.path.join(target_path, repo_name)
+    elif sub_dir:
+        # 如果没有指定目标路径，则使用子目录的最后一部分
         target_path = os.path.basename(sub_dir)
+    else:
+        # 如果既没有目标路径也没有子目录路径，则默认为目标路径为仓库名
+        target_path = repo_name
 
     # 如果没有子目录路径，默认同步整个仓库
     if not sub_dir:
@@ -143,17 +157,6 @@ def sync_repositories(packages_file):
 
             # 确定需要复制的源路径
             source_path = os.path.join(temp_dir, sub_dir) if sub_dir else temp_dir
-            target_path = os.path.join(".", target_path or os.path.basename(source_path))
-
-            # 检查源路径是否存在
-            if not os.path.exists(source_path):
-                print(f"Source path {source_path} does not exist, skipping...")
-                shutil.rmtree(temp_dir)
-                continue
-
-            # 如果是子模块，手动克隆其内容
-            if is_submodule(temp_dir, sub_dir):
-                handle_submodule(temp_dir, sub_dir)
 
             # 确保目标路径的父目录存在
             Path(target_path).parent.mkdir(parents=True, exist_ok=True)

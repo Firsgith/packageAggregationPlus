@@ -137,13 +137,14 @@ def sync_repositories(packages_file):
     synced_paths = []
 
     with open(packages_file, "r") as file:
-        for line in file:
+        for i, line in enumerate(file):
             repo_url, sub_dir, target_path, depth = parse_line(line)
             if not repo_url:
                 continue
 
-            # 打印解析规则前的空行
-            print()
+            # 打印解析规则前的空行（跳过第一条规则前的空行）
+            if i > 0:
+                print()
 
             # 打印解析结果
             print(f"Parsing line: {line.strip()}")

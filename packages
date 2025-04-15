@@ -1,0 +1,8 @@
+#每行填写一条仓库地址，以英文格式的“;”结尾，如果只需要添加该仓库内某个文件夹及里面的全部内容，请在仓库地址和子目录路径的中间使用英文逗号“,”分隔。
+https://github.com/sirpdboy/luci-app-ddns-go.git;
+https://github.com/Firsgith/luci-app-zerotierV2.git;
+https://github.com/immortalwrt/luci.git,themes/luci-theme-bootstrap;
+https://github.com/Firsgith/luci-app-cifs-mount.git;
+https://github.com/Firsgith/luci-app-tailscale.git;
+https://github.com/Firsgith/luci-app-wolplus.git;
+https://github.com/jerrykuku/luci-theme-argon.git;

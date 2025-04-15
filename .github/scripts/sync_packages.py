@@ -77,17 +77,29 @@ def parse_line(line):
     if not line or line.startswith("#"):
         return None, None, None
 
-    parts = line.split(",", 2)
-    repo_url = parts[0].strip()
-    sub_dir = parts[1].strip() if len(parts) > 1 else None
+    parts = line.split(",")
+    repo_url = parts[0].strip()  # 第一部分：仓库地址
+    sub_dir = None
     target_path = None
 
-    if len(parts) > 2 and "=" in parts[2]:
-        # 如果有 path=，提取目标路径
-        target_path = parts[2].split("=")[1].strip()
-    elif sub_dir:
-        # 如果没有 path=，默认使用子目录路径的最后一部分作为目标路径
+    # 遍历剩余部分，处理子目录路径和目标路径
+    for part in parts[1:]:
+        part = part.strip()
+        if "=" in part:
+            key, value = part.split("=", 1)
+            if key.strip() == "path":
+                target_path = value.strip()
+        else:
+            # 如果没有 path=，则认为这是子目录路径
+            sub_dir = part
+
+    # 如果没有指定目标路径，默认使用子目录路径的最后一部分
+    if not target_path and sub_dir:
         target_path = os.path.basename(sub_dir)
+
+    # 如果没有子目录路径，默认同步整个仓库
+    if not sub_dir:
+        sub_dir = None
 
     return repo_url, sub_dir, target_path
 

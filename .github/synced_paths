@@ -1,6 +1,6 @@
 luci-app-ddns-go
 luci-app-zerotierV2
-themes/luci-theme-bootstrap
+themes2/luci-theme-bootstrap
 luci-app-cifs-mount
 luci-app-tailscale
 luci-app-wolplus

@@ -52,4 +52,4 @@ https://github.com/linkease/istore.git,path=linkease;
 https://github.com/sirpdboy/luci-app-poweroffdevice.git;
 https://github.com/EasyTier/luci-app-easytier.git;
 #https://github.com/openwrt/luci.git,applications/luci-app-strongswan-swanctl;
-
+https://github.com/vernesong/OpenClash.git,depth=1;

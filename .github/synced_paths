@@ -4,7 +4,7 @@ themes/luci-theme-bootstrap
 luci-app-cifs-mount
 luci-app-tailscale
 luci-app-wolplus
-theme/luci-theme-argon.git
+themes/luci-theme-argon
 linkease/nas-packages
 linkease/nas-packages-luci
 linkease/istore

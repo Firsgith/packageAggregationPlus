@@ -69,31 +69,38 @@ def handle_submodule(temp_dir, sub_dir):
 
 def parse_line(line):
     """
-    解析一行输入，提取仓库地址、子目录路径和目标路径。
+    解析一行输入，提取仓库地址、子目录路径、目标路径和克隆深度。
     :param line: 输入行
-    :return: (repo_url, sub_dir, target_path)
+    :return: (repo_url, sub_dir, target_path, depth)
     """
     line = line.strip().rstrip(";")  # 去掉末尾的分号
     if not line or line.startswith("#"):
-        return None, None, None
+        return None, None, None, None
 
     parts = line.split(",")
     repo_url = parts[0].strip()  # 第一部分：仓库地址
     sub_dir = None
     target_path = None
+    depth = None  # 默认克隆深度为 None（完整克隆）
 
     # 提取仓库名（去掉 .git 后缀）
     repo_name = os.path.basename(repo_url).replace(".git", "")
 
-    # 遍历剩余部分，处理子目录路径和目标路径
+    # 遍历剩余部分，处理子目录路径、目标路径和克隆深度
     for part in parts[1:]:
         part = part.strip()
         if "=" in part:
             key, value = part.split("=", 1)
             if key.strip() == "path":
                 target_path = value.strip()
+            elif key.strip() == "depth":
+                try:
+                    depth = int(value.strip())  # 将 depth 转换为整数
+                except ValueError:
+                    print(f"Invalid depth value: {value}. Using default full clone.")
+                    depth = None
         else:
-            # 如果没有 path=，则认为这是子目录路径
+            # 如果没有 path= 或 depth=，则认为这是子目录路径
             sub_dir = part
 
     # 目标路径的生成逻辑
@@ -115,7 +122,7 @@ def parse_line(line):
     if not sub_dir:
         sub_dir = None
 
-    return repo_url, sub_dir, target_path
+    return repo_url, sub_dir, target_path, depth
 
 def sync_repositories(packages_file):
     """
@@ -131,21 +138,24 @@ def sync_repositories(packages_file):
 
     with open(packages_file, "r") as file:
         for line in file:
-            repo_url, sub_dir, target_path = parse_line(line)
+            repo_url, sub_dir, target_path, depth = parse_line(line)
             if not repo_url:
                 continue
 
             print(f"Parsing line: {line}")
-            print(f"Repo URL: {repo_url}, Sub Dir: {sub_dir}, Target Path: {target_path}")
+            print(f"Repo URL: {repo_url}, Sub Dir: {sub_dir}, Target Path: {target_path}, Depth: {depth}")
 
             # 提取仓库名称作为临时目录名
             repo_name = os.path.basename(repo_url).replace(".git", "")
 
             # 克隆仓库到临时目录
             temp_dir = f"/tmp/{repo_name}"
-            print(f"Cloning {repo_url}...")
+            print(f"Cloning {repo_url} with depth={depth}...")
             try:
-                subprocess.run(["git", "clone", repo_url, temp_dir], check=True)
+                if depth:
+                    subprocess.run(["git", "clone", "--depth", str(depth), repo_url, temp_dir], check=True)
+                else:
+                    subprocess.run(["git", "clone", repo_url, temp_dir], check=True)
             except subprocess.CalledProcessError as e:
                 print(f"Failed to clone {repo_url}: {e}")
                 continue

@@ -20,10 +20,13 @@ def clean_existing_files(synced_paths):
 
         if os.path.exists(target_path):
             print(f"Removing existing path: {target_path}")
-            if os.path.isdir(target_path):
-                shutil.rmtree(target_path)
-            else:
-                os.remove(target_path)
+            try:
+                if os.path.isdir(target_path):
+                    shutil.rmtree(target_path)
+                else:
+                    os.remove(target_path)
+            except Exception as e:
+                print(f"Error cleaning up path {target_path}: {e}")
 
 def is_submodule(temp_dir, sub_dir):
     """
@@ -145,14 +148,21 @@ def sync_repositories(packages_file):
             # 清理目标路径（仅删除当前路径，不删除父目录）
             if os.path.exists(target_path):
                 print(f"Cleaning up existing target path: {target_path}")
-                if os.path.isdir(target_path):
-                    shutil.rmtree(target_path)
-                else:
-                    os.remove(target_path)
+                try:
+                    if os.path.isdir(target_path):
+                        shutil.rmtree(target_path)
+                    else:
+                        os.remove(target_path)
+                except Exception as e:
+                    print(f"Error cleaning up target path {target_path}: {e}")
 
             # 复制文件到目标路径
             print(f"Copying folder {source_path} to {target_path}...")
-            shutil.copytree(source_path, target_path, dirs_exist_ok=True)
+            try:
+                shutil.copytree(source_path, target_path, dirs_exist_ok=True)
+            except Exception as e:
+                print(f"Error copying folder {source_path} to {target_path}: {e}")
+                continue
 
             # 记录本次同步的路径
             synced_paths.append(os.path.relpath(target_path, "."))

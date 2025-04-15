@@ -25,5 +25,16 @@
 # 请确保路径分隔符在不同操作系统下的兼容性 (建议使用 Unix 风格的路径)。
 
 #删除或者注释仓库地址，其将会从本仓库中删除。
-https://github.com/jerrykuku/luci-theme-argon.git,path=themes/luci-theme-argon;
-
+https://github.com/sirpdboy/luci-app-ddns-go.git;
+https://github.com/Firsgith/luci-app-zerotierV2.git;
+https://github.com/immortalwrt/luci.git,themes/luci-theme-bootstrap,path=themes/luci-theme-bootstrap;
+https://github.com/Firsgith/luci-app-cifs-mount.git;
+https://github.com/Firsgith/luci-app-tailscale.git;
+https://github.com/Firsgith/luci-app-wolplus.git;
+https://github.com/jerrykuku/luci-theme-argon.git,path=theme/luci-theme-argon.git;
+https://github.com/linkease/nas-packages.git,path=linkease/nas-packages;
+https://github.com/linkease/nas-packages-luci.git,path=linkease/nas-packages-luci;
+https://github.com/linkease/istore.git,path=linkease/istore;
+https://github.com/sirpdboy/luci-app-poweroffdevice.git;
+https://github.com/EasyTier/luci-app-easytier.git;
+https://github.com/openwrt/luci.git,applications/luci-app-strongswan-swanctl;

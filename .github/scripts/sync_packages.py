@@ -83,9 +83,10 @@ def parse_line(line):
     target_path = None
 
     if len(parts) > 2 and "=" in parts[2]:
+        # 如果有 path=，提取目标路径
         target_path = parts[2].split("=")[1].strip()
     elif sub_dir:
-        # 如果没有指定 path=，提取子目录路径的最后一个部分作为目标路径
+        # 如果没有 path=，默认使用子目录路径的最后一部分作为目标路径
         target_path = os.path.basename(sub_dir)
 
     return repo_url, sub_dir, target_path

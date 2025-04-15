@@ -32,15 +32,40 @@ jobs:
       # 配置 Git 凭据并提交更改
       - name: Configure Git and commit changes
         run: |
+          # 配置 Git 用户信息
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
           # 使用 SYNC_TOKEN 配置身份验证
           git remote set-url origin https://${{ github.actor }}:${{ secrets.SYNC_TOKEN }}@github.com/${{ github.repository }}.git
 
+          # 检查是否有更改
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          # 动态生成提交消息
+          ADDED_FILES=$(git diff --name-only --diff-filter=A)
+          DELETED_FILES=$(git diff --name-only --diff-filter=D)
+          MODIFIED_FILES=$(git diff --name-only --diff-filter=M)
+
+          COMMIT_MESSAGE="Sync packages from repositories"
+
+          # 检查是否有新增、删除或修改的文件
+          if [ -n "$ADDED_FILES" ]; then
+            COMMIT_MESSAGE="$COMMIT_MESSAGE\nAdded:\n$ADDED_FILES"
+          fi
+          if [ -n "$DELETED_FILES" ]; then
+            COMMIT_MESSAGE="$COMMIT_MESSAGE\nRemoved:\n$DELETED_FILES"
+          fi
+          if [ -n "$MODIFIED_FILES" ]; then
+            COMMIT_MESSAGE="$COMMIT_MESSAGE\nModified:\n$MODIFIED_FILES"
+          fi
+
           # 提交更改
           git add .
-          git commit -m "Sync packages from repositories" || echo "No changes to commit"
+          git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
           git push
 
       # 清理旧的 Workflow Runs，仅保留最近的 3 条

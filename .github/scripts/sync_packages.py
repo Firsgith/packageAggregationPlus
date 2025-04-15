@@ -142,7 +142,11 @@ def sync_repositories(packages_file):
             if not repo_url:
                 continue
 
-            print(f"Parsing line: {line}")
+            # 打印解析规则前的空行
+            print()
+
+            # 打印解析结果
+            print(f"Parsing line: {line.strip()}")
             print(f"Repo URL: {repo_url}, Sub Dir: {sub_dir}, Target Path: {target_path}, Depth: {depth}")
 
             # 提取仓库名称作为临时目录名

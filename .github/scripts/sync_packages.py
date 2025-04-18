@@ -3,90 +3,53 @@ import subprocess
 import shutil
 from pathlib import Path
 
-# 定义记录已同步路径的文件
+# 定义记录已同步路径和哈希值的文件
 SYNCED_PATHS_FILE = ".github/synced_paths"
+PACKAGES_FILE = "packages"
 
-def clean_existing_files(synced_paths):
+def get_remote_hash(repo_url):
     """
-    清理主仓库中已存在的、由 .synced_paths 文件定义的文件或目录。
-    :param synced_paths: 已同步的路径列表
-    """
-    print("Cleaning existing files and directories...")
-    for target_path in synced_paths:
-        target_path = os.path.join(".", target_path)
-        if not target_path or os.path.abspath(target_path) == os.path.abspath("."):
-            print(f"Skipping removal of current working directory: {target_path}")
-            continue
-
-        if os.path.exists(target_path):
-            print(f"Removing existing path: {target_path}")
-            try:
-                if os.path.isdir(target_path):
-                    shutil.rmtree(target_path)
-                else:
-                    os.remove(target_path)
-            except Exception as e:
-                print(f"Error cleaning up path {target_path}: {e}")
-
-def is_submodule(temp_dir, sub_dir):
-    """
-    检查指定的子目录是否为子模块。
-    :param temp_dir: 临时目录路径
-    :param sub_dir: 子目录路径
-    :return: True if the subdirectory is a submodule, False otherwise
+    获取远程仓库的最新提交哈希值。
+    :param repo_url: 仓库地址
+    :return: 最新提交哈希值
     """
     try:
         result = subprocess.run(
-            ["git", "-C", temp_dir, "submodule", "status", sub_dir],
+            ["git", "ls-remote", repo_url, "HEAD"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
         )
-        return result.returncode == 0
-    except Exception:
-        return False
-
-def handle_submodule(temp_dir, sub_dir):
-    """
-    如果子目录是子模块，手动克隆其内容。
-    :param temp_dir: 临时目录路径
-    :param sub_dir: 子目录路径
-    :return: None
-    """
-    print(f"Detected '{sub_dir}' as a submodule. Cloning its contents...")
-    submodule_url = subprocess.run(
-        ["git", "-C", temp_dir, "config", "--get", f"submodule.{sub_dir}.url"],
-        stdout=subprocess.PIPE,
-        text=True
-    ).stdout.strip()
-
-    if not submodule_url:
-        print(f"Failed to retrieve URL for submodule '{sub_dir}'.")
-        return
-
-    # Clone the submodule's content into the same directory
-    subprocess.run(["git", "clone", submodule_url, f"{temp_dir}/{sub_dir}"], check=True)
+        if result.returncode == 0:
+            return result.stdout.split()[0]  # 提取哈希值
+        else:
+            print(f"Failed to fetch remote hash for {repo_url}: {result.stderr}")
+            return None
+    except Exception as e:
+        print(f"Error fetching remote hash for {repo_url}: {e}")
+        return None
 
 def parse_line(line):
     """
-    解析一行输入，提取仓库地址、子目录路径、目标路径和克隆深度。
+    解析一行输入，提取仓库地址、子目录路径、目标路径、克隆深度和哈希值。
     :param line: 输入行
-    :return: (repo_url, sub_dir, target_path, depth)
+    :return: (repo_url, sub_dir, target_path, depth, hash_value)
     """
     line = line.strip().rstrip(";")  # 去掉末尾的分号
     if not line or line.startswith("#"):
-        return None, None, None, None
+        return None, None, None, None, None
 
     parts = line.split(",")
     repo_url = parts[0].strip()  # 第一部分：仓库地址
     sub_dir = None
     target_path = None
-    depth = None  # 默认克隆深度为 None（完整克隆）
+    depth = None
+    hash_value = None
 
     # 提取仓库名（去掉 .git 后缀）
     repo_name = os.path.basename(repo_url).replace(".git", "")
 
-    # 遍历剩余部分，处理子目录路径、目标路径和克隆深度
+    # 遍历剩余部分，处理子目录路径、目标路径、克隆深度和哈希值
     for part in parts[1:]:
         part = part.strip()
         if "=" in part:
@@ -99,6 +62,8 @@ def parse_line(line):
                 except ValueError:
                     print(f"Invalid depth value: {value}. Using default full clone.")
                     depth = None
+            elif key.strip() == "hash":
+                hash_value = value.strip()
         else:
             # 如果没有 path= 或 depth=，则认为这是子目录路径
             sub_dir = part
@@ -122,7 +87,40 @@ def parse_line(line):
     if not sub_dir:
         sub_dir = None
 
-    return repo_url, sub_dir, target_path, depth
+    return repo_url, sub_dir, target_path, depth, hash_value
+
+def update_packages_file(packages_file, repo_url, new_hash):
+    """
+    更新 packages 文件中的哈希值。
+    :param packages_file: packages 文件路径
+    :param repo_url: 仓库地址
+    :param new_hash: 新的哈希值
+    """
+    with open(packages_file, "r") as file:
+        lines = file.readlines()
+
+    updated_lines = []
+    for line in lines:
+        if line.strip().startswith(repo_url):
+            # 替换或添加 hash= 参数
+            parts = line.split(",")
+            updated_parts = []
+            hash_found = False
+            for part in parts:
+                if part.strip().startswith("hash="):
+                    updated_parts.append(f"hash={new_hash}")
+                    hash_found = True
+                else:
+                    updated_parts.append(part.strip())
+            if not hash_found:
+                updated_parts.append(f"hash={new_hash}")
+            updated_line = ", ".join(updated_parts) + ";\n"
+            updated_lines.append(updated_line)
+        else:
+            updated_lines.append(line)
+
+    with open(packages_file, "w") as file:
+        file.writelines(updated_lines)
 
 def sync_repositories(packages_file):
     """
@@ -138,7 +136,7 @@ def sync_repositories(packages_file):
 
     with open(packages_file, "r") as file:
         for i, line in enumerate(file):
-            repo_url, sub_dir, target_path, depth = parse_line(line)
+            repo_url, sub_dir, target_path, depth, saved_hash = parse_line(line)
             if not repo_url:
                 continue
 
@@ -148,12 +146,32 @@ def sync_repositories(packages_file):
 
             # 打印解析结果
             print(f"Parsing line: {line.strip()}")
-            print(f"Repo URL: {repo_url}, Sub Dir: {sub_dir}, Target Path: {target_path}, Depth: {depth}")
+            print(f"Repo URL: {repo_url}, Sub Dir: {sub_dir}, Target Path: {target_path}, Depth: {depth}, Saved Hash: {saved_hash}")
 
-            # 提取仓库名称作为临时目录名
-            repo_name = os.path.basename(repo_url).replace(".git", "")
+            # 获取远程仓库的最新哈希值
+            latest_hash = get_remote_hash(repo_url)
+            if not latest_hash:
+                print(f"Skipping {repo_url} due to failure in fetching remote hash.")
+                continue
+
+            # 如果哈希值未变化，跳过同步
+            if saved_hash and saved_hash == latest_hash:
+                print(f"No changes detected for {repo_url}. Skipping sync.")
+                continue
+
+            # 清理目标路径
+            if os.path.exists(target_path):
+                print(f"Cleaning up existing target path: {target_path}")
+                try:
+                    if os.path.isdir(target_path):
+                        shutil.rmtree(target_path)
+                    else:
+                        os.remove(target_path)
+                except Exception as e:
+                    print(f"Error cleaning up target path {target_path}: {e}")
 
             # 克隆仓库到临时目录
+            repo_name = os.path.basename(repo_url).replace(".git", "")
             temp_dir = f"/tmp/{repo_name}"
             print(f"Cloning {repo_url} with depth={depth}...")
             try:
@@ -176,17 +194,6 @@ def sync_repositories(packages_file):
             # 确保目标路径的父目录存在
             Path(target_path).parent.mkdir(parents=True, exist_ok=True)
 
-            # 清理目标路径（仅删除当前路径，不删除父目录）
-            if os.path.exists(target_path):
-                print(f"Cleaning up existing target path: {target_path}")
-                try:
-                    if os.path.isdir(target_path):
-                        shutil.rmtree(target_path)
-                    else:
-                        os.remove(target_path)
-                except Exception as e:
-                    print(f"Error cleaning up target path {target_path}: {e}")
-
             # 复制文件到目标路径
             print(f"Copying folder {source_path} to {target_path}...")
             try:
@@ -201,6 +208,9 @@ def sync_repositories(packages_file):
             # 清理临时目录
             shutil.rmtree(temp_dir)
             print(f"Synced {repo_name} successfully.")
+
+            # 更新 packages 文件中的哈希值
+            update_packages_file(packages_file, repo_url, latest_hash)
 
     # 更新 .synced_paths 文件
     with open(SYNCED_PATHS_FILE, "w") as file:

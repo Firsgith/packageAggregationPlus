@@ -41,7 +41,7 @@
 #    上述规则被注释后，主仓库中的 ./custom_path/repo 目录将会被移除。
 https://github.com/sirpdboy/luci-app-ddns-go.git;
 https://github.com/Firsgith/luci-app-zerotierV2.git;
-https://github.com/immortalwrt/luci.git,themes/luci-theme-bootstrap,depth=1;
+#https://github.com/immortalwrt/luci.git,themes/luci-theme-bootstrap,depth=1;
 https://github.com/Firsgith/luci-app-cifs-mount.git;
 https://github.com/Firsgith/luci-app-tailscale.git;
 https://github.com/Firsgith/luci-app-wolplus.git;

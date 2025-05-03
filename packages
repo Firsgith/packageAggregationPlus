@@ -41,16 +41,16 @@
 #    上述规则被注释后，主仓库中的 ./custom_path/repo 目录将会被移除。
 https://github.com/sirpdboy/luci-app-ddns-go.git;
 https://github.com/Firsgith/luci-app-zerotierV2.git;
-https://github.com/immortalwrt/luci.git,themes/luci-theme-bootstrap,path=themes,depth=1;
+https://github.com/immortalwrt/luci.git,themes/luci-theme-bootstrap,depth=1;
 https://github.com/Firsgith/luci-app-cifs-mount.git;
 https://github.com/Firsgith/luci-app-tailscale.git;
 https://github.com/Firsgith/luci-app-wolplus.git;
-https://github.com/jerrykuku/luci-theme-argon.git,path=themes;
-https://github.com/linkease/nas-packages.git,path=linkease;
-https://github.com/linkease/nas-packages-luci.git,path=linkease;
-https://github.com/linkease/istore.git,path=linkease;
+https://github.com/jerrykuku/luci-theme-argon.git;
+https://github.com/linkease/nas-packages.git,path=linkeasepackages;
+https://github.com/linkease/nas-packages-luci.git,nas-packages-luci/luci,path=linkeaseluci;
+https://github.com/linkease/istore.git;
 https://github.com/sirpdboy/luci-app-poweroffdevice.git;
 https://github.com/EasyTier/luci-app-easytier.git;
 #https://github.com/openwrt/luci.git,applications/luci-app-strongswan-swanctl,depth=1;
-https://github.com/vernesong/OpenClash.git,depth=1;
+https://github.com/vernesong/OpenClash.git,depth=1,OpenClash/luci-app-openclash;
 https://github.com/Firsgith/luci-app-zerotier.git;

@@ -54,4 +54,4 @@ https://github.com/EasyTier/luci-app-easytier.git;
 https://github.com/openwrt/luci.git,applications/luci-app-strongswan-swanctl,depth=1;
 https://github.com/vernesong/OpenClash.git,depth=1,OpenClash/luci-app-openclash;
 https://github.com/Firsgith/luci-app-zerotier.git;
-https://github.com/Firsgith/OpenWrt-nikki.git;
+#https://github.com/Firsgith/OpenWrt-nikki.git;

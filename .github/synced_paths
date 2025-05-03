@@ -6,6 +6,7 @@ luci-app-tailscale
 luci-app-wolplus
 luci-theme-argon
 linkeasepackages/nas-packages
+linkeaseluci/luci
 istore
 luci-app-poweroffdevice
 luci-app-easytier

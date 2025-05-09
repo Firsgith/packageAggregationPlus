@@ -1,10 +1,1 @@
-luci-app-ddns-go
-luci-app-zerotierV2
-luci-app-cifs-mount
-luci-app-tailscale
-luci-app-wolplus
-luci-app-poweroffdevice
-luci-app-easytier
-luci-app-strongswan-swanctl
-luci-app-zerotier
-OpenWrt-nikki
+luci-app-zerotier/luci-app-zerotier

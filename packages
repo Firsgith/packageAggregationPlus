@@ -55,4 +55,4 @@
 #https://github.com/vernesong/OpenClash.git,depth=1,OpenClash/luci-app-openclash;
 #https://github.com/Firsgith/luci-app-zerotier.git;
 #https://github.com/Firsgith/OpenWrt-nikki.git;
-https://github.com/1715173329/luci.git,applications/luci-app-zerotier,path=luci-app-zerotier,depth=1;
+https://github.com/1715173329/luci.git,applications/luci-app-zerotier,depth=1;

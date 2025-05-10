@@ -38,7 +38,6 @@
 # 删除或注释掉某条规则后，脚本将会从主仓库中删除对应的同步内容。
 # 例如：
 #    # https://github.com/user/repo.git,path=custom_path;
-#    上述规则被注释后，主仓库中的 ./custom_path/repo 目录将会被移除。
 https://github.com/sirpdboy/luci-app-ddns-go.git;
 #https://github.com/Firsgith/luci-app-zerotierV2.git;
 #https://github.com/immortalwrt/luci.git,themes/luci-theme-bootstrap,depth=1;

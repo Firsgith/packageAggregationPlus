@@ -9,3 +9,5 @@ luci-app-strongswan-swanctl
 luci-app-zerotier
 OpenWrt-nikki
 homeproxy
+sing-box
+swanmon

@@ -1,7 +1,6 @@
 luci-app-tailscale
 luci-app-wolplus
-linkeasepackages/nas-packages
-linkeaseluci/luci
+nas-packages
 istore
 luci-app-poweroffdevice
 luci-app-easytier

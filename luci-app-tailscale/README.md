@@ -1,5 +1,4 @@
 # luci-app-tailscale
-![20241216233753](https://github.com/user-attachments/assets/dbd3c818-b963-4eee-926c-b692cd5bdf64)
 
 Tailscale is a zero config VPN for building secure networks.
 
@@ -31,18 +30,31 @@ Tailscale is a zero config VPN for building secure networks.
 
 ## How to install prebuilt packages
 
-- Upload the prebuilt ipk package to the /tmp directory of OpenWrt
-
+- Upload the prebuilt ipk or apk package to the /tmp directory of OpenWrt
 - Login OpenWrt terminal (SSH)
 
+### opkg package manager 
   ```shell
   opkg update
   opkg install --force-overwrite /tmp/luci-*-tailscale*.ipk
   ```
 
---------------
+### apk package manager 
+  ```shell
+  apk update
+  apk add --allow-untrusted --force-overwrite /tmp/luci-*-tailscale*.apk
+  ```
 
+--------------
 
 ## Thanks
 - [Carseason/openwrt-tailscale](https://github.com/Carseason/openwrt-tailscale)
 - [immortalwrt/luci-app-zerotier](https://github.com/immortalwrt/luci/blob/master/applications/luci-app-zerotier)
+
+--------------
+
+## Screenshot
+<img width="573" alt="Basic" src="https://github.com/user-attachments/assets/bfca389a-bcec-42de-b5dd-b9588fd5db23" />
+<img width="577" alt="Advanced" src="https://github.com/user-attachments/assets/d60ce19e-b3f3-43a7-98fc-7df6e2231898" />
+<img width="575" alt="Extra" src="https://github.com/user-attachments/assets/6de5eaa7-6c18-48b8-a44a-0eaa311b0b79" />
+

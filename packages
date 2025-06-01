@@ -36,8 +36,8 @@
 # 请确保路径分隔符在不同操作系统下的兼容性 (建议使用 Unix 风格的路径)。
 #
 # 删除或注释掉某条规则后，脚本将会从主仓库中删除对应的同步内容。
-# 例如：
-#    # https://github.com/user/repo.git,path=custom_path;
+# 例如：https://github.com/user/repo.git,path=custom_path;
+#    
 #https://github.com/sirpdboy/luci-app-ddns-go.git;
 #https://github.com/Firsgith/luci-app-zerotierV2.git;
 #https://github.com/immortalwrt/luci.git,themes/luci-theme-bootstrap,depth=1;

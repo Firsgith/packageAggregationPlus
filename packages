@@ -58,4 +58,4 @@ https://github.com/Firsgith/OpenWrt-nikki.git;
 #https://github.com/immortalwrt/homeproxy.git;
 #https://github.com/immortalwrt/packages.git,net/sing-box;
 #https://github.com/openwrt/packages.git,utils/swanmon;
-https://github.com/Siriling/5G-Modem-Support.git,quectel_cm_5G
+#https://github.com/Siriling/5G-Modem-Support.git,quectel_cm_5G

@@ -362,7 +362,7 @@ btn0info = s:taboption("infos", DummyValue, "btn0info")
 btn0info.rawhtml = true
 btn0info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_node") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn1 = s:taboption("infos", Button, "btn1")
@@ -381,7 +381,7 @@ btn1info = s:taboption("infos", DummyValue, "btn1info")
 btn1info.rawhtml = true
 btn1info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_peer") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn2 = s:taboption("infos", Button, "btn2")
@@ -400,7 +400,7 @@ btn2info = s:taboption("infos", DummyValue, "btn2info")
 btn2info.rawhtml = true
 btn2info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_connector") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn3 = s:taboption("infos", Button, "btn3")
@@ -419,7 +419,7 @@ btn3info = s:taboption("infos", DummyValue, "btn3info")
 btn3info.rawhtml = true
 btn3info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_stun") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 
@@ -439,7 +439,7 @@ btn4info = s:taboption("infos", DummyValue, "btn4info")
 btn4info.rawhtml = true
 btn4info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_route") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn6 = s:taboption("infos", Button, "btn6")
@@ -458,7 +458,7 @@ btn6info = s:taboption("infos", DummyValue, "btn6info")
 btn6info.rawhtml = true
 btn6info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_peer-center") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn7 = s:taboption("infos", Button, "btn7")
@@ -477,7 +477,7 @@ btn7info = s:taboption("infos", DummyValue, "btn7info")
 btn7info.rawhtml = true
 btn7info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_vpn-portal") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn8 = s:taboption("infos", Button, "btn8")
@@ -496,7 +496,7 @@ btn8info = s:taboption("infos", DummyValue, "btn8info")
 btn8info.rawhtml = true
 btn8info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_proxy") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn5 = s:taboption("infos", Button, "btn5")
@@ -515,7 +515,7 @@ btn5cmd = s:taboption("infos", DummyValue, "btn5cmd")
 btn5cmd.rawhtml = true
 btn5cmd.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier_cmd") or ""
-    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btnrm = s:taboption("infos", Button, "btnrm")
@@ -656,9 +656,26 @@ html_port = s:option(Value, "html_port", translate("web界面端口"),
 html_port.datatype = "range(1,65535)"
 html_port.placeholder = "11210"
 
+local router_ip = luci.sys.exec("uci -q get network.lan.ipaddr"):gsub("\n", "") 
+local default_api_port = api_port.default or "11211"
 api_host = s:option(Value, "api_host", translate("默认API服务器URL"),
-	translate("API 服务器的 URL，用于 web 前端连接。（ --api-host 参数）"))
-api_host.placeholder = "https://config-server.easytier.cn"
+	translate("API 服务器的 URL，用于 web 前端连接。（ --api-host 参数）<br>填写示例 http://当前设备IP或解析的域名:API端口"))
+api_host.placeholder = "http://" .. router_ip .. ":" .. default_api_port
+api_host.default = "http://" .. router_ip .. ":" .. default_api_port
+api_host.validate = function(self, value, section)
+    local port_val = api_port:formvalue(section) or default_api_port 
+    if not port_val or port_val == "" then
+        port_val = default_api_port
+    end
+    local port_in_api_host = string.match(value, ":(%d+)$")
+    if port_in_api_host ~= port_val then
+        local new_value = string.gsub(value, ":%d+$", "")
+        new_value = new_value .. ":" .. port_val
+        return new_value
+    end
+    return value
+end
+
 
 weblog = s:option(ListValue, "weblog", translate("程序日志"),
 	translate("运行日志在/tmp/easytierweb.log,可在上方日志查看<br>若启动失败，请前往 状态- 系统日志 查看具体启动失败日志<br>详细程度：警告<信息<调试<跟踪"))

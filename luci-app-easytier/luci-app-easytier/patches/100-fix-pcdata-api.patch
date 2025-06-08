@@ -1,0 +1,64 @@
+--- a/luasrc/model/cbi/easytier.lua
++++ b/luasrc/model/cbi/easytier.lua
+@@ -364,7 +364,7 @@
+ btn0info.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier-cli_node") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end
+ 
+@@ -383,7 +383,7 @@
+ btn1info.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier-cli_peer") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end
+ 
+ @@ -402,7 +402,7 @@
+ btn2info.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier-cli_connector") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end
+ 
+ @@ -421,7 +421,7 @@
+ btn3info.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier-cli_stun") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end
+ 
+ @@ -441,7 +441,7 @@
+ btn4info.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier-cli_route") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end
+ 
+ @@ -460,7 +460,7 @@
+ btn6info.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier-cli_peer-center") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end
+ 
+ @@ -479,7 +479,7 @@
+ btn7info.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier-cli_vpn-portal") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end
+ 
+ @@ -498,7 +498,7 @@
+ btn8info.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier-cli_proxy") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end
+ 
+ @@ -517,7 +517,7 @@
+ btn5cmd.cfgvalue = function(self, section)
+     local content = nixio.fs.readfile("/tmp/easytier_cmd") or ""
+-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
++    return string.format("<pre>%s</pre>", luci.xml.pcdata(content))
+ end 

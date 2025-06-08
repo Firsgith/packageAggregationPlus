@@ -5,6 +5,8 @@ on:
   push: # 或者在特定分支推送时触发
     branches:
       - main
+    paths:
+      - packages
 
 jobs:
   sync-packages:

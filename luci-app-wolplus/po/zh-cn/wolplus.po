@@ -21,3 +21,6 @@ msgstr "唤醒"
 
 msgid "Please [Save & Apply] your changes first"
 msgstr "请先保存并应用您的设置"
+
+msgid "Wake-on-LAN packet sent to device %s %s %s"
+msgstr "已向设备%s %s %s 发送远程唤醒指令。"

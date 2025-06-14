@@ -1,4 +1,211 @@
 <% include("cbi/map") %>
+<style type="text/css">
+	:root {
+		--success-bg: #f0fdf4;
+		--success-border: #86efac;
+		--success-text: #166534;
+
+		--warning-bg: #fefce8;
+		--warning-border: #fef08a;
+		--warning-text: #854d0e;
+	}
+
+	.toast-container {
+		position: fixed;
+		top: 24px;
+		right: 24px;
+		z-index: 999999;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.toast {
+		padding: 16px;
+		border-radius: 8px;
+		box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+		min-width: 300px;
+		max-width: 400px;
+		font-size: 14px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		opacity: 0;
+		transform: translateX(100%);
+		transition: all 0.3s ease;
+		position: relative;
+	}
+
+	.toast[data-mounted="true"] {
+		opacity: 1;
+		transform: translateX(0);
+	}
+
+	.toast[data-removed="true"] {
+		opacity: 0;
+		transform: translateX(100%);
+	}
+
+	.toast[data-type="success"] {
+		background: var(--success-bg);
+		border: 1px solid var(--success-border);
+		color: var(--success-text);
+	}
+
+	.toast[data-type="warning"] {
+		background: var(--warning-bg);
+		border: 1px solid var(--warning-border);
+		color: var(--warning-text);
+	}
+
+	.toast-content {
+		flex: 1;
+	}
+
+	.toast-message {
+		font-weight: 500;
+		line-height: 1.4;
+	}
+
+	.toast-close-button {
+		background: none;
+		border: none;
+		color: inherit;
+		cursor: pointer;
+		font-size: 16px;
+		padding: 0;
+		line-height: 1;
+		position: absolute;
+		top: -10px;
+		left: -10px;
+		border-radius: 50%;
+		width: 24px;
+		height: 24px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
+		opacity: 0.7;
+		transition: opacity 0.3s ease;
+	}
+
+	.toast-close-button:hover {
+		opacity: 1;
+	}
+
+	.toast[data-type="success"] .toast-close-button {
+		background: var(--success-bg);
+		border: 1px solid var(--success-border);
+		color: var(--success-text);
+	}
+
+	.toast[data-type="warning"] .toast-close-button {
+		background: var(--warning-bg);
+		border: 1px solid var(--warning-border);
+		color: var(--warning-text);
+	}
+
+	.toast-progress-bar-container {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background-color: rgba(0, 0, 0, 0.1);
+		border-bottom-left-radius: 8px;
+		border-bottom-right-radius: 8px;
+		overflow: hidden;
+	}
+
+	.toast-progress-bar {
+		height: 100%;
+		width: 100%;
+		transition: width 3s linear;
+	}
+
+	.toast[data-type="success"] .toast-progress-bar {
+		background-color: var(--success-border);
+	}
+
+	.toast[data-type="warning"] .toast-progress-bar {
+		background-color: var(--warning-border);
+	}
+</style>
+
+<script type="text/javascript">
+	class Toast {
+		constructor() {
+			this.container = null;
+			this.init();
+		}
+
+		init() {
+			this.container = document.createElement('div');
+			this.container.className = 'toast-container';
+			document.body.appendChild(this.container);
+		}
+
+		show(message, type) {
+			const toast = document.createElement('div');
+			toast.className = 'toast';
+			toast.setAttribute('data-type', type);
+			toast.setAttribute('data-mounted', 'false');
+
+			const content = document.createElement('div');
+			content.className = 'toast-content';
+
+			const messageEl = document.createElement('div');
+			messageEl.className = 'toast-message';
+			messageEl.textContent = message;
+
+			content.appendChild(messageEl);
+			toast.appendChild(content);
+
+			const closeButton = document.createElement('button');
+			closeButton.className = 'toast-close-button';
+			closeButton.innerHTML = '&times;';
+			closeButton.onclick = () => {
+				toast.setAttribute('data-removed', 'true');
+				setTimeout(() => toast.remove(), 300);
+			};
+			toast.appendChild(closeButton);
+
+			const progressBarContainer = document.createElement('div');
+			progressBarContainer.className = 'toast-progress-bar-container';
+
+			const progressBar = document.createElement('div');
+			progressBar.className = 'toast-progress-bar';
+
+			progressBarContainer.appendChild(progressBar);
+			toast.appendChild(progressBarContainer);
+
+			this.container.appendChild(toast);
+
+			requestAnimationFrame(() => {
+				toast.setAttribute('data-mounted', 'true');
+				setTimeout(() => {
+					progressBar.style.width = '0%';
+				}, 50);
+			});
+
+			setTimeout(() => {
+				toast.setAttribute('data-removed', 'true');
+				setTimeout(() => toast.remove(), 300);
+			}, 3000);
+		}
+
+		success(message) {
+			this.show(message, 'success');
+		}
+
+		warning(message) {
+			this.show(message, 'warning');
+		}
+	}
+
+	const toast = new Toast();
+</script>
+
 <script type="text/javascript">
 	function _id2section(id) {
 		var x = id.split(".");
@@ -9,14 +216,26 @@
 		var btnXHR = new XHR();
 		btnXHR.post('<%=url([[admin]], [[services]], [[wolplus]], [[awake]])%>/' + section, { token: '<%=token%>' },
 			function(x, data) {
-				if (x.responseText == "_uncommitted_") {
-					txt="<%:Please [Save & Apply] your changes first%>";
-					alert( txt.replace(new RegExp("<%:&%>", "g"), "&") );
-				} else {
-					alert( JSON.parse(x.response).data );
+				try {
+					if (x.status === 500) {
+						var txt="<%:Please [Save & Apply] your changes first%>";
+						toast.warning( txt.replace(new RegExp("<%:&%>", "g"), "&") );
+						return;
+					}
+					
+					var responseData = JSON.parse(x.response);
+					var deviceName = responseData.name;
+					var macAddressFormatted = responseData.macaddr_formatted;
+					var macHint = responseData.mac_hint;
+					var hintText = macHint ? " (" + macHint + ")" : "";
+					var successMessage = String.format("<%:Wake-on-LAN packet sent to device %s %s %s%>", deviceName, hintText, macAddressFormatted);
+					toast.success(successMessage);
+				} catch (e) {
+					console.error("Error processing response:", e);
+					var txt="<%:Please [Save & Apply] your changes first%>";
+					toast.warning( txt.replace(new RegExp("<%:&%>", "g"), "&") );
 				}
 			}
 		);
 	}
 </script>
-

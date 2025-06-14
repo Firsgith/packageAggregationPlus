@@ -12,7 +12,7 @@
 
 	.toast-container {
 		position: fixed;
-		top: 24px;
+		top: 48px;
 		right: 24px;
 		z-index: 999999;
 		display: flex;
@@ -228,7 +228,8 @@
 					var macAddressFormatted = responseData.macaddr_formatted;
 					var macHint = responseData.mac_hint;
 					var hintText = macHint ? " (" + macHint + ")" : "";
-					var successMessage = String.format("<%:Wake-on-LAN packet sent to device %s %s %s%>", deviceName, hintText, macAddressFormatted);
+					var msg = "<%:Wake-on-LAN packet sent to device %s %s %s%>";
+					var successMessage = String.format(msg, deviceName, hintText, macAddressFormatted);
 					toast.success(successMessage);
 				} catch (e) {
 					console.error("Error processing response:", e);

@@ -558,7 +558,7 @@ return view.extend({
         o.value('0', _('Disable'));
         o.value('1', _('Enable'));
 
-        o = s.taboption('geox', form.Value, 'geox_update_interval', _('GeoX Update Interval (integer hours)'));
+        o = s.taboption('geox', form.Value, 'geox_update_interval', _('GeoX Update Interval'));
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified');
 

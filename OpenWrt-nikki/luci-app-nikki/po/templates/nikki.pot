@@ -417,7 +417,7 @@ msgid "GeoX Config"
 msgstr ""
 
 #: applications/luci-app-nikki/htdocs/luci-static/resources/view/nikki/mixin.js:561
-msgid "GeoX Update Interval"
+msgid "GeoX Update Interval (integer hours)"
 msgstr ""
 
 #: applications/luci-app-nikki/htdocs/luci-static/resources/view/nikki/mixin.js:96

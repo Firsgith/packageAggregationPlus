@@ -6,7 +6,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=2.3.1
+PKG_VERSION:=2.3.2
 PKG_RELEASE:=1
 
 LUCI_TITLE:=LuCI support for EasyTier
@@ -78,5 +78,5 @@ $(eval $(call Build/Template,Package/$(PKG_NAME)/prerm))
 $(eval $(call Build/Template,Package/$(PKG_NAME)/postinst))
 
 include $(TOPDIR)/feeds/luci/luci.mk
-LUCI_I18N:=$(PKG_NAME)
+
 # call BuildPackage - OpenWrt buildroot signature

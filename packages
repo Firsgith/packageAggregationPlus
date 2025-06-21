@@ -49,7 +49,7 @@ https://github.com/linkease/nas-packages.git;
 https://github.com/linkease/nas-packages-luci.git,luci,path=linkeaseluci;
 https://github.com/linkease/istore.git;
 https://github.com/sirpdboy/luci-app-poweroffdevice.git;
-https://github.com/EasyTier/luci-app-easytier.git;
+https://github.com/Firsgith/luci-app-easytier.git;
 #https://github.com/openwrt/luci.git,applications/luci-app-strongswan-swanctl,depth=1;
 https://github.com/vernesong/OpenClash.git,depth=1;
 #https://github.com/Firsgith/luci-app-zerotier.git;

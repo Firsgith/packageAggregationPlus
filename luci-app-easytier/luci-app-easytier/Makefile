@@ -78,5 +78,5 @@ $(eval $(call Build/Template,Package/$(PKG_NAME)/prerm))
 $(eval $(call Build/Template,Package/$(PKG_NAME)/postinst))
 
 include $(TOPDIR)/feeds/luci/luci.mk
-
+LUCI_I18N:=$(PKG_NAME)
 # call BuildPackage - OpenWrt buildroot signature

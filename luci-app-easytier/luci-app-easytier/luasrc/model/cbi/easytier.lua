@@ -1,13 +1,12 @@
 local http = luci.http
 local nixio = require "nixio"
-local xml = require "luci.xml"
 
 m = Map("easytier")
 m.description = translate("A simple, secure, decentralized VPN solution for intranet penetration, implemented in Rust using the Tokio framework. "
         .. "Project URL: <a href=\"https://github.com/EasyTier/EasyTier\" target=\"_blank\">github.com/EasyTier/EasyTier</a>&nbsp;&nbsp;"
         .. "<a href=\"http://easytier.cn\" target=\"_blank\">Official Documentation</a>&nbsp;&nbsp;"
         .. "<a href=\"http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=jhP2Z4UsEZ8wvfGPLrs0VwLKn_uz0Q_p&authKey=OGKSQLfg61YPCpVQuvx%2BxE7hUKBVBEVi9PljrDKbHlle6xqOXx8sOwPPTncMambK&noverify=0&group_code=949700262\" target=\"_blank\">QQ Group</a>&nbsp;&nbsp;"
-        .. "<a href=\"https://doc.oee.icu\">Beginner Tutorial</a>")
+        .. "<a href=\"https://doc.oee.icu\" target=\"_blank\">Beginner Tutorial</a>")
 
 m:section(SimpleSection).template  = "easytier/easytier_status"
 
@@ -37,7 +36,7 @@ etcmd = s:taboption("general", ListValue, "etcmd", translate("Startup Method"),
                 .. "Official Configuration File Generator: <a href=\"https://easytier.cn/web/index.html#/config_generator\" target=\"_blank\">"
                 .. "https://easytier.cn/web/index.html#/config_generator</a><br>Please note to set the RPC port to 15888"))
 etcmd.default = "etcmd"
-etcmd:value("etcmd", translate("Command Line"))
+etcmd:value("etcmd", translate("Default"))
 etcmd:value("config", translate("Configuration File"))
 etcmd:value("web", translate("Web Configuration"))
 
@@ -73,18 +72,13 @@ web_config:depends("etcmd", "web")
 network_name = s:taboption("general", Value, "network_name", translate("Network Name"),
         translate("The network name used to identify this VPN network (--network-name parameter)"))
 network_name.password = true
-network_name.placeholder = "easytierVPN"
+network_name.placeholder = "easytier-name"
 network_name:depends("etcmd", "etcmd")
-network_name:depends("log", "error")
-network_name:depends("log", "warn")
-network_name:depends("log", "info")
-network_name:depends("log", "debug")
-network_name:depends("log", "trace")
 
 network_secret = s:taboption("general", Value, "network_secret", translate("Network Secret"),
         translate("Network secret used to verify whether this node belongs to the VPN network (--network-secret parameter)"))
 network_secret.password = true
-network_secret.placeholder = "secret"
+network_secret.placeholder = "easytier-password"
 network_secret:depends("etcmd", "etcmd")
 
 ip_dhcp = s:taboption("general", Flag, "ip_dhcp", translate("Enable DHCP"),
@@ -98,6 +92,13 @@ ipaddr = s:taboption("general", Value, "ipaddr", translate("Interface IP Address
 ipaddr.datatype = "ip4addr"
 ipaddr.placeholder = "10.0.0.1"
 ipaddr:depends("etcmd", "etcmd")
+
+ip6addr = s:taboption("general", Value, "ip6addr", translate("Interface IPV6 Address"),
+        translate("ipv6 address of this vpn node, can be used together with ipv4 for dual-stack operation"
+                .. "(--ipv6 parameter)"))
+ip6addr.datatype = "ip6addr"
+ip6addr.placeholder = "2001:db8::1"
+ip6addr:depends("etcmd", "etcmd")
 
 peeradd = s:taboption("general", DynamicList, "peeradd", translate("Peer Nodes"),
         translate("Initial connected peer nodes, same function as the parameter below (-p parameter)<br>"
@@ -133,6 +134,11 @@ rpc_portal.default = "15888"
 rpc_portal.datatype = "range(1,65535)"
 rpc_portal:depends("etcmd", "etcmd")
 
+rpc_portal_whitelist = s:taboption("privacy", Value, "rpc_portal_whitelist", translate("RPC Access Whitelist"),
+        translate("rpc portal whitelist, only allow these addresses to access rpc portal (--rpc-portal-whitelist parameter)"))
+rpc_portal_whitelist.placeholder = "127.0.0.1/32,127.0.0.0/8,::1/128"
+rpc_portal_whitelist:depends("etcmd", "etcmd")
+
 listenermode = s:taboption("general", ListValue, "listenermode", translate("Listener Port"),
         translate("OFF: Do not listen on any port, only connect to peer nodes (--no-listener parameter)<br>"
                 .. "If used purely as a client (not as a server), you can choose not to listen on a port"))
@@ -140,12 +146,6 @@ listenermode:value("ON", translate("Listen"))
 listenermode:value("OFF", translate("Do Not Listen"))
 listenermode.default = "OFF"
 listenermode:depends("etcmd", "etcmd")
-
-listener6 = s:taboption("general", Flag, "listener6", translate("Listen on IPv6 as well"),
-        translate("By default, only IPv4 is listened to, and peer nodes can only connect via IPv4. "
-                .."Enabling this will listen on IPv6 ports as well."))
-listener6:depends("listenermode", "ON")
-listener6:depends("etcmd", "etcmd")
 
 tcp_port = s:taboption("general", Value, "tcp_port", translate("TCP/UDP Port"),
         translate("TCP/UDP protocol port number: 11010 means TCP/UDP will listen on port 11010.<br>"
@@ -179,6 +179,12 @@ wg_port.placeholder = "11011"
 wg_port:depends("listenermode", "ON")
 wg_port:depends("etcmd", "web")
 
+quic_port = s:taboption("general", Value, "quic_port", translate("QUIC Port"),
+        translate("If this is the Web configuration in the config file, please fill in the same listening port for firewall allowance."))
+quic_port.datatype = "range(1,65535)"
+quic_port:depends("listenermode", "ON")
+quic_port:depends("etcmd", "web")
+
 local model = nixio.fs.readfile("/proc/device-tree/model") or ""
 local hostname = nixio.fs.readfile("/proc/sys/kernel/hostname") or ""
 model = model:gsub("\n", "")
@@ -205,11 +211,9 @@ uuid.write = function(self, section, value)
 end
 
 instance_name = s:taboption("privacy", Value, "instance_name", translate("Instance Name"),
-        translate("Used to identify the VPN node instance on the same machine. Required if logging is enabled. "
-                .. "When using web configuration, enter the same instance_name (-m parameter)"))
+        translate("Used to identify the VPN node instance on the same machine. (-m parameter)"))
 instance_name.placeholder = "default"
 instance_name:depends("etcmd", "etcmd")
-instance_name:depends("etcmd", "web")
 
 vpn_portal = s:taboption("privacy", Value, "vpn_portal", translate("VPN Portal URL"),
         translate("Defines the URL of the VPN portal, allowing other VPN clients to connect.<br>"
@@ -240,25 +244,30 @@ tunname.placeholder = "tun0"
 tunname:depends("etcmd", "etcmd")
 tunname:depends("etcmd", "web")
 
-disable_encryption = s:taboption("general", Flag, "disable_encryption", translate("Disable Encryption"),
+disable_encryption = s:taboption("privacy", Flag, "disable_encryption", translate("Disable Encryption"),
         translate("Disable encryption for communication with peer nodes. "
                 .. "If encryption is disabled, all other nodes must also have encryption disabled (-u parameter)"))
 disable_encryption:depends("etcmd", "etcmd")
 
-multi_thread = s:taboption("general", Flag, "multi_thread", translate("Enable Multithreading"),
+multi_thread = s:taboption("privacy", Flag, "multi_thread", translate("Enable Multithreading"),
         translate("Enable multithreaded operation; single-threaded by default (--multi-thread parameter)"))
 multi_thread:depends("etcmd", "etcmd")
+
+multi_thread_count = s:taboption("privacy", Value, "multi_thread_count", translate("Number of Threads"),
+        translate("the number of threads to use, default is 2, only effective when multi-thread is enabled, must be greater than 2 (--multi-thread-count parameter)"))
+multi_thread_count.placeholder = "2"
+multi_thread_count:depends("etcmd", "etcmd")
 
 disable_ipv6 = s:taboption("privacy", Flag, "disable_ipv6", translate("Disable IPv6"),
         translate("Do not use IPv6 (--disable-ipv6 parameter)"))
 disable_ipv6:depends("etcmd", "etcmd")
 
-latency_first = s:taboption("general", Flag, "latency_first", translate("Enable Latency First"),
+latency_first = s:taboption("privacy", Flag, "latency_first", translate("Enable Latency First"),
         translate("Latency-first mode: attempts to forward traffic via the lowest latency path. "
                 .. "By default, the shortest path is used (--latency-first parameter)"))
 latency_first:depends("etcmd", "etcmd")
 
-comp = s:taboption("general", ListValue, "comp", translate("Compression Algorithm"),
+comp = s:taboption("privacy", ListValue, "comp", translate("Compression Algorithm"),
         translate("Compression algorithm to use (--compression parameter)"))
 comp.default = "none"
 comp:value("none",translate("default"))
@@ -347,8 +356,9 @@ quic_proxy = s:taboption("privacy", Flag, "quic_proxy", translate("Enable QUIC P
 quic_proxy:depends("etcmd", "etcmd")
 
 quic_input = s:taboption("privacy", Flag, "quic_input", translate("Disable QUIC Input"),
-        translate("Do not allow other nodes to use QUIC to proxy tcp streams to this node. When a node with QUIC proxy enabled  accesses this node, the original tcp connection is preserved.<br>"
-                .. "QUIC proxy-enabled nodes accessing this node will still use the original method. (--disable-quic-input parameter)"))
+    translate("Do not allow other nodes to use QUIC to proxy tcp streams to this node.") ..
+    translate("When a node with QUIC proxy enabled accesses this node, the original tcp connection is preserved.") ..
+    translate("<br>QUIC proxy-enabled nodes accessing this node will still use the original method. (--disable-quic-input parameter)"))
 quic_input:depends("etcmd", "etcmd")
 
 port_forward = s:taboption("privacy", DynamicList, "port_forward", translate("Port Forwarding"),
@@ -367,10 +377,19 @@ private_mode = s:taboption("privacy", Flag, "private_mode", translate("Enable Pr
                 .. "relay via this node. (--private-mode parameter)"))
 private_mode:depends("etcmd", "etcmd")
 
+foreign_relay_bps_limit = s:taboption("privacy", Value, "foreign_relay_bps_limit", translate("Forwarding Rate"),
+        translate("the maximum bps limit for foreign network relay, default is no limit. unit: BPS (bytes per second). "
+                .. "(--foreign-relay-bps-limit parameter)"))
+foreign_relay_bps_limit:depends("etcmd", "etcmd")
+
+extra_args = s:taboption("privacy", Value, "extra_args", translate("Extra Parameters"),
+    translate("Additional command-line arguments passed to the backend process"))
+extra_args.placeholder = "--tcp-whitelist 80 --udp-whitelist 53"
+extra_args:depends("etcmd", "etcmd")
+
 log = s:taboption("general", ListValue, "log", translate("Program Log"),
         translate("Runtime log is located at /tmp/easytier.log. View it in the log section above.<br>"
-                .. "If startup fails, check 'Status - System Log' for details.<br>"
-                .. "Log level: Warning < Info < Debug < Trace"))
+                .. "Levels: Error < Warning < Info < Debug < Trace"))
 log.default = "off"
 log:value("off", translate("Off"))
 log:value("error", translate("Error"))
@@ -424,7 +443,7 @@ btn0info = s:taboption("infos", DummyValue, "btn0info")
 btn0info.rawhtml = true
 btn0info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_node") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn1 = s:taboption("infos", Button, "btn1")
@@ -443,7 +462,7 @@ btn1info = s:taboption("infos", DummyValue, "btn1info")
 btn1info.rawhtml = true
 btn1info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_peer") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn2 = s:taboption("infos", Button, "btn2")
@@ -462,7 +481,7 @@ btn2info = s:taboption("infos", DummyValue, "btn2info")
 btn2info.rawhtml = true
 btn2info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_connector") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn3 = s:taboption("infos", Button, "btn3")
@@ -481,7 +500,7 @@ btn3info = s:taboption("infos", DummyValue, "btn3info")
 btn3info.rawhtml = true
 btn3info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_stun") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 
@@ -501,7 +520,7 @@ btn4info = s:taboption("infos", DummyValue, "btn4info")
 btn4info.rawhtml = true
 btn4info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_route") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn6 = s:taboption("infos", Button, "btn6")
@@ -520,7 +539,7 @@ btn6info = s:taboption("infos", DummyValue, "btn6info")
 btn6info.rawhtml = true
 btn6info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_peer-center") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn7 = s:taboption("infos", Button, "btn7")
@@ -539,7 +558,7 @@ btn7info = s:taboption("infos", DummyValue, "btn7info")
 btn7info.rawhtml = true
 btn7info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_vpn-portal") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn8 = s:taboption("infos", Button, "btn8")
@@ -558,7 +577,45 @@ btn8info = s:taboption("infos", DummyValue, "btn8info")
 btn8info.rawhtml = true
 btn8info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_proxy") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
+end
+
+btn9 = s:taboption("infos", Button, "btn9")
+btn9.inputtitle = translate("ACL rules")
+btn9.description = translate("Click the button to refresh and view ACL rules information")
+btn9.inputstyle = "apply"
+btn9.write = function()
+    if process_status ~= "" then
+        luci.sys.call("$(dirname $(uci -q get easytier.@easytier[0].easytierbin))/easytier-cli acl stats >/tmp/easytier-cli_acl 2>&1")
+    else
+        luci.sys.call("echo '错误：程序未运行！请启动程序后重新点击刷新' >/tmp/easytier-cli_acl")
+    end
+end
+
+btn9info = s:taboption("infos", DummyValue, "btn9info")
+btn9info.rawhtml = true
+btn9info.cfgvalue = function(self, section)
+    local content = nixio.fs.readfile("/tmp/easytier-cli_acl") or ""
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
+end
+
+btn10 = s:taboption("infos", Button, "btn10")
+btn10.inputtitle = translate("Mapped listener")
+btn10.description = translate("Click the button to refresh and view manage mapped listeners")
+btn10.inputstyle = "apply"
+btn10.write = function()
+    if process_status ~= "" then
+        luci.sys.call("$(dirname $(uci -q get easytier.@easytier[0].easytierbin))/easytier-cli mapped-listener >/tmp/easytier-cli_mapped_listener 2>&1")
+    else
+        luci.sys.call("echo '错误：程序未运行！请启动程序后重新点击刷新' >/tmp/easytier-cli_mapped_listener")
+    end
+end
+
+btn10info = s:taboption("infos", DummyValue, "btn10info")
+btn10info.rawhtml = true
+btn10info.cfgvalue = function(self, section)
+    local content = nixio.fs.readfile("/tmp/easytier-cli_mapped_listener") or ""
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btn5 = s:taboption("infos", Button, "btn5")
@@ -577,7 +634,7 @@ btn5cmd = s:taboption("infos", DummyValue, "btn5cmd")
 btn5cmd.rawhtml = true
 btn5cmd.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier_cmd") or ""
-    return string.format("<pre>%s</pre>", xml.pcdata(content))
+    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
 btnrm = s:taboption("infos", Button, "btnrm")
@@ -727,7 +784,7 @@ api_port.default = "11211"
 html_port = s:option(Value, "html_port", translate("Web Interface Port"),
         translate("Frontend listening port for the web dashboard server. Leave empty to disable. (-l parameter)"))
 html_port.datatype = "range(1,65535)"
-html_port.placeholder = "11210"
+html_port.default = "11211"
 
 local router_ip = luci.sys.exec("uci -q get network.lan.ipaddr"):gsub("\n", "")
 local default_api_port = api_port.default or "11211"
@@ -750,9 +807,13 @@ api_host.validate = function(self, value, section)
     return value
 end
 
+geoip_db = s:option(Value, "geoip_db", translate("GEOIP_DB Path"),
+        translate("GeoIP2 database file path used to locate the client. Defaults to an embedded file (country-level information only)."
+		.. "<br>Recommended: https://github.com/P3TERX/GeoLite.mmdb (--geoip-db parameter)"))
+geoip_db.placeholder = "/etc/easytier/GeoLite.mmdb"
+
 weblog = s:option(ListValue, "weblog", translate("Program Log"),
         translate("Runtime log located at /tmp/easytierweb.log, viewable in the log section above.<br>"
-                .. "If startup fails, check the System Log under Status for detailed failure logs.<br>"
                 .. "Levels: Error < Warning < Info < Debug < Trace"))
 weblog.default = "off"
 weblog:value("off", translate("Off"))

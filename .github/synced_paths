@@ -1,10 +1,6 @@
 luci-app-tailscale
 luci-app-wolplus
-nas-packages
-linkeaseluci/luci
-istore
 luci-app-poweroffdevice
 luci-app-easytier
 OpenClash
 OpenWrt-nikki
-quectel_cm_5G

@@ -45,9 +45,9 @@
 https://github.com/asvow/luci-app-tailscale.git;
 https://github.com/Firsgith/luci-app-wolplus.git;
 #https://github.com/jerrykuku/luci-theme-argon.git;
-https://github.com/linkease/nas-packages.git;
-https://github.com/linkease/nas-packages-luci.git,luci,path=linkeaseluci;
-https://github.com/linkease/istore.git;
+#https://github.com/linkease/nas-packages.git;
+#https://github.com/linkease/nas-packages-luci.git,luci,path=linkeaseluci;
+#https://github.com/linkease/istore.git;
 https://github.com/sirpdboy/luci-app-poweroffdevice.git;
 https://github.com/Firsgith/luci-app-easytier.git;
 #https://github.com/openwrt/luci.git,applications/luci-app-strongswan-swanctl,depth=1;
@@ -58,4 +58,4 @@ https://github.com/Firsgith/OpenWrt-nikki.git;
 #https://github.com/immortalwrt/homeproxy.git;
 #https://github.com/immortalwrt/packages.git,net/sing-box;
 #https://github.com/openwrt/packages.git,utils/swanmon;
-https://github.com/Siriling/5G-Modem-Support.git,quectel_cm_5G
+#https://github.com/Siriling/5G-Modem-Support.git,quectel_cm_5G

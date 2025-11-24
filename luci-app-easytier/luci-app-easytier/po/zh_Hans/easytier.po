@@ -36,7 +36,6 @@ msgstr ""
 "项目地址：<a href=\"https://github.com/EasyTier/EasyTier\" target=\"_blank\">github.com/EasyTier/EasyTier</a>&nbsp;&nbsp;"
 "<a href=\"http://easytier.cn\" target=\"_blank\">官网文档</a>&nbsp;&nbsp;"
 "<a href=\"http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=jhP2Z4UsEZ8wvfGPLrs0VwLKn_uz0Q_p&authKey=OGKSQLfg61YPCpVQuvx%2BxE7hUKBVBEVi9PljrDKbHlle6xqOXx8sOwPPTncMambK&noverify=0&group_code=949700262\" target=\"_blank\">QQ群</a>&nbsp;&nbsp;"
-"<a href=\"https://doc.oee.icu\" target=\"_blank\">菜鸟教程</a>"
 #: applications/luci-app-easytier/luasrc/model/cbi/easytier.lua:720
 msgid "API Port"
 msgstr "API端口"
@@ -104,6 +103,9 @@ msgstr "检测更新"
 #: applications/luci-app-easytier/luasrc/view/easytier/easytierweb_log.htm:31
 msgid "Clear Logs"
 msgstr "清除日志"
+
+msgid "Download Log"
+msgstr "下载日志"
 
 #: applications/luci-app-easytier/luasrc/model/cbi/easytier.lua:469
 msgid "Click the button to refresh and view STUN information"
@@ -487,12 +489,11 @@ msgstr "信息"
 
 #: applications/luci-app-easytier/luasrc/model/cbi/easytier.lua:102
 msgid ""
-"Initial connected peer nodes, same function as the parameter below (-p "
-"parameter)<br>Public server status check: <a href='https://easytier.gd."
-"nkbpal.cn/status/easytier' target='_blank'>Click here to check</a>"
+"Initial connected peer nodes (-p "
+"parameter)<br>Public server status check: <a href='https://uptime.easytier.cn' target='_blank'>Click here to check</a>"
 msgstr ""
-"初始连接的对等节点，和下方参数作用一样 （-p 参数）<br>公共服务器可用状态查询："
-"<a href='https://easytier.gd.nkbpal.cn/status/easytier' target='_blank'>点此查询</a>"
+"初始连接的对等节点 (-p 参数）<br>公共服务器可用状态查询："
+"<a href='https://uptime.easytier.cn' target='_blank'>点此查询</a>"
 
 #: applications/luci-app-easytier/luasrc/model/cbi/easytier.lua:206
 msgid "Instance Name"
@@ -1058,4 +1059,27 @@ msgstr "Mapped listener信息"
 msgid "Click the button to refresh and view manage mapped listeners"
 msgstr "点击按钮刷新，查看管理映射的监听器"
 
+msgid "Encryption Algorithm"
+msgstr "加密算法"
+
+msgid "encryption algorithm to use, supported: xor, chacha20, aes-gcm, aes-gcm-256, openssl-aes128-gcm, openssl-aes256-gcm, openssl-chacha20. default (aes-gcm) (--encryption-algorithm parameter)"
+msgstr "使用的加密算法，支持：xor、chacha20、aes-gcm、aes-gcm-256、openssl-aes128-gcm、openssl-aes256-gcm、openssl-chacha20。默认（aes-gcm）(--encryption-algorithm 参数)"
+
+msgid "Stats"
+msgstr "Stats统计信息"
+
+msgid "Click the button to refresh and view statistics information"
+msgstr "点击按钮刷新，查看统计信息"
+
+msgid "WAN access to WEB"
+msgstr "外网连接WEB"
+
+msgid "Automatically add firewall rules to allow WAN access to this WEB console"
+msgstr "自动添加防火墙端口放行规则，外网可连接此WEB控制台"
+
+msgid "WAN access to API"
+msgstr "外网访问API"
+
+msgid "Automatically add firewall rules to allow WAN access to the API control page"
+msgstr "自动添加防火墙端口放行规则，外网可访问API控制页面"
 

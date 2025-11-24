@@ -5,9 +5,8 @@ m = Map("easytier")
 m.description = translate("A simple, secure, decentralized VPN solution for intranet penetration, implemented in Rust using the Tokio framework. "
         .. "Project URL: <a href=\"https://github.com/EasyTier/EasyTier\" target=\"_blank\">github.com/EasyTier/EasyTier</a>&nbsp;&nbsp;"
         .. "<a href=\"http://easytier.cn\" target=\"_blank\">Official Documentation</a>&nbsp;&nbsp;"
-        .. "<a href=\"http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=jhP2Z4UsEZ8wvfGPLrs0VwLKn_uz0Q_p&authKey=OGKSQLfg61YPCpVQuvx%2BxE7hUKBVBEVi9PljrDKbHlle6xqOXx8sOwPPTncMambK&noverify=0&group_code=949700262\" target=\"_blank\">QQ Group</a>&nbsp;&nbsp;"
-        .. "<a href=\"https://doc.oee.icu\" target=\"_blank\">Beginner Tutorial</a>")
-
+        .. "<a href=\"http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=jhP2Z4UsEZ8wvfGPLrs0VwLKn_uz0Q_p&authKey=OGKSQLfg61YPCpVQuvx%2BxE7hUKBVBEVi9PljrDKbHlle6xqOXx8sOwPPTncMambK&noverify=0&group_code=949700262\" target=\"_blank\">QQ Group</a>&nbsp;&nbsp;")
+  
 m:section(SimpleSection).template  = "easytier/easytier_status"
 
 -- easytier-core
@@ -28,6 +27,7 @@ btncq.description = translate("Quickly restart once without modifying any parame
 btncq.inputstyle = "apply"
 btncq:depends("enabled", "1")
 btncq.write = function()
+  luci.sys.call("rm -rf /tmp/easytier*.tag /tmp/easytier*.newtag >/dev/null 2>&1 &") -- 执行删除版本号信息
   luci.sys.call("/etc/init.d/easytier restart >/dev/null 2>&1 &")  -- 执行重启命令
 end
 
@@ -101,19 +101,21 @@ ip6addr.placeholder = "2001:db8::1"
 ip6addr:depends("etcmd", "etcmd")
 
 peeradd = s:taboption("general", DynamicList, "peeradd", translate("Peer Nodes"),
-        translate("Initial connected peer nodes, same function as the parameter below (-p parameter)<br>"
-                .. "Public server status check: <a href='https://easytier.gd.nkbpal.cn/status/easytier' target='_blank'>"
+        translate("Initial connected peer nodes (-p parameter)<br>"
+                .. "Public server status check: <a href='https://uptime.easytier.cn' target='_blank'>"
                 .. "Click here to check</a>"))
 peeradd.placeholder = "tcp://public.easytier.top:11010"
 peeradd:value("tcp://public.easytier.top:11010", translate("Official Server - tcp://public.easytier.top:11010"))
 peeradd:depends("etcmd", "etcmd")
 
+--[=[
 external_node = s:taboption("general", Value, "external_node", translate("Shared Node Address"),
         translate("Use a public shared node to discover peer nodes, same function as the parameter above (-e parameter)"))
 external_node.default = ""
 external_node.placeholder = "tcp://public.easytier.top:11010"
 external_node:value("tcp://public.easytier.top:11010", translate("Official Server - tcp://public.easytier.top:11010"))
 external_node:depends("etcmd", "etcmd")
+]=]
 
 proxy_network = s:taboption("general", DynamicList, "proxy_network", translate("Subnet Proxy"),
         translate("Export the local network to other peers in the VPN, allowing access to other devices in the current LAN (-n parameter)"))
@@ -144,7 +146,7 @@ listenermode = s:taboption("general", ListValue, "listenermode", translate("List
                 .. "If used purely as a client (not as a server), you can choose not to listen on a port"))
 listenermode:value("ON", translate("Listen"))
 listenermode:value("OFF", translate("Do Not Listen"))
-listenermode.default = "OFF"
+listenermode.default = "ON"
 listenermode:depends("etcmd", "etcmd")
 
 tcp_port = s:taboption("general", Value, "tcp_port", translate("TCP/UDP Port"),
@@ -248,6 +250,18 @@ disable_encryption = s:taboption("privacy", Flag, "disable_encryption", translat
         translate("Disable encryption for communication with peer nodes. "
                 .. "If encryption is disabled, all other nodes must also have encryption disabled (-u parameter)"))
 disable_encryption:depends("etcmd", "etcmd")
+
+encryption_algorithm = s:taboption("privacy", ListValue, "encryption_algorithm", translate("Encryption Algorithm"),
+        translate("encryption algorithm to use, supported: xor, chacha20, aes-gcm, aes-gcm-256, openssl-aes128-gcm, openssl-aes256-gcm, openssl-chacha20. default (aes-gcm) (--encryption-algorithm parameter)"))
+encryption_algorithm.default = "aes-gcm"
+encryption_algorithm:value("xor",translate("xor"))
+encryption_algorithm:value("chacha20",translate("chacha20"))
+encryption_algorithm:value("aes-gcm",translate("aes-gcm"))
+encryption_algorithm:value("aes-gcm-256",translate("aes-gcm-256"))
+encryption_algorithm:value("openssl-aes128-gcm",translate("openssl-aes128-gcm"))
+encryption_algorithm:value("openssl-aes256-gcm",translate("openssl-aes256-gcm"))
+encryption_algorithm:value("openssl-chacha20",translate("openssl-chacha20"))
+encryption_algorithm:depends("etcmd", "etcmd")
 
 multi_thread = s:taboption("privacy", Flag, "multi_thread", translate("Enable Multithreading"),
         translate("Enable multithreaded operation; single-threaded by default (--multi-thread parameter)"))
@@ -443,7 +457,65 @@ btn0info = s:taboption("infos", DummyValue, "btn0info")
 btn0info.rawhtml = true
 btn0info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_node") or ""
-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
+    content = luci.util.trim(content or "")
+
+    local html = {}
+    local parsed = false 
+
+    table.insert(html, [[
+        <div style="overflow:auto; max-width:100%;">
+        <table style="border-collapse:collapse;font-family:monospace;width:100%;">
+    ]])
+
+    local rowIndex = 0
+    for line in content:gmatch("[^\r\n]+") do
+        if not line:match("^|%s*-") then
+            local key, value = line:match("^|%s*(.-)%s*|%s*(.-)%s*|?$")
+            if key and value then
+                parsed = true
+
+                -- Key 中文化
+                key = key:gsub("^Virtual IP$", "虚拟IP")
+                key = key:gsub("^Hostname$", "主机名")
+                key = key:gsub("^Proxy CIDRs$", "代理CIDR")
+                key = key:gsub("^Peer ID$", "节点ID")
+                key = key:gsub("^Public IPv4$", "公网IPv4")
+                key = key:gsub("^UDP Stun Type$", "UDP穿透类型")
+                key = key:gsub("^Interface IPv4$", "IPv4地址")
+                key = key:gsub("^Interface IPv6$", "IPv6地址")
+                key = key:gsub("^Listener%s*(%d+)$", "监听器 %1") 
+
+                -- Value 中文化
+                value = value:gsub("PortRestricted", "端口受限")
+
+                local style_key = "padding:6px;text-align:left;white-space:nowrap;border:1px solid #ccc;background:#f7f7f7;"
+                local style_value = "padding:4px;text-align:left;white-space:nowrap;border:1px solid #ccc;"
+                if rowIndex % 2 == 1 then
+                    style_value = style_value .. "background:#fafafa;"
+                else
+                    style_value = style_value .. "background:#ffffff;"
+                end
+
+                local tr = {}
+                table.insert(tr, string.format("<th style='%s'>%s</th>", style_key, luci.util.pcdata(key)))
+                table.insert(tr, string.format("<td style='%s'>%s</td>", style_value, luci.util.pcdata(value)))
+
+                table.insert(html, "<tr>" .. table.concat(tr) .. "</tr>")
+                rowIndex = rowIndex + 1
+            end
+        end
+    end
+
+    table.insert(html, "</table></div>")
+
+    if parsed then
+        return table.concat(html, "\n")
+    else
+        return string.format(
+            "<pre style='background:#f9f9f9;border:1px solid #ccc;padding:8px;white-space:pre-wrap;'>%s</pre>",
+            luci.util.pcdata(content)
+        )
+    end
 end
 
 btn1 = s:taboption("infos", Button, "btn1")
@@ -462,7 +534,99 @@ btn1info = s:taboption("infos", DummyValue, "btn1info")
 btn1info.rawhtml = true
 btn1info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_peer") or ""
-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
+    content = luci.util.trim(content or "")
+
+    local html = {}
+    local parsed = false 
+
+    table.insert(html, [[
+        <div style="overflow:auto; max-width:100%;">
+        <table style="border-collapse:collapse;font-family:monospace;width:100%;">
+    ]])
+
+    local rowIndex = 0
+    for line in content:gmatch("[^\r\n]+") do
+        if not line:match("^|[-| ]+|$") then
+            local trimmed = line:gsub("^|", ""):gsub("|$", "")
+            local row = {}
+
+            local start = 1
+            while true do
+                local s, e = string.find(trimmed, "|", start, true)
+                local cell
+                if s then
+                    cell = trimmed:sub(start, s - 1)
+                    start = e + 1
+                else
+                    cell = trimmed:sub(start)
+                end
+
+                cell = luci.util.trim(cell)
+                cell = cell:gsub("&#124;", "|")
+
+                -- 表头替换中文
+                if rowIndex == 0 then
+                    if cell == "ipv4" then cell = "IPv4地址"
+                    elseif cell == "hostname" then cell = "主机名"
+                    elseif cell == "cost" then cell = "路由"
+                    elseif cell == "lat(ms)" then cell = "延迟(ms)"
+                    elseif cell == "loss" then cell = "丢包率"
+                    elseif cell == "rx" then cell = "下载"
+                    elseif cell == "tx" then cell = "上传"
+                    elseif cell == "tunnel" then cell = "协议"
+                    elseif cell == "NAT" then cell = "NAT类型"
+                    elseif cell == "version" then cell = "内核版本"
+                    end
+                else
+                    -- 内容值中文化
+                    if cell == "Local" then
+                        cell = "本机"
+                    elseif cell == "PortRestricted" then
+                        cell = "端口受限"
+                    elseif cell == "NoPat" then
+                        cell = "无端口映射"
+                    end
+                end
+
+                table.insert(row, cell)
+
+                if not s then break end
+            end
+
+            if #row > 0 then
+                parsed = true
+                local tr = {}
+                for i, c in ipairs(row) do
+                    local tag = rowIndex == 0 and "th" or "td"
+                    local style = "padding:4px;text-align:left;white-space:nowrap;border:1px solid #ccc;"
+
+                    if tag == "th" then
+                        style = "padding:6px;text-align:center;white-space:nowrap;border:1px solid #ccc;background:#f7f7f7;"
+                    elseif rowIndex % 2 == 1 then
+                        style = style .. "background:#fafafa;"
+                    else
+                        style = style .. "background:#ffffff;"
+                    end
+
+                    table.insert(tr, string.format("<%s style='%s'>%s</%s>", tag, style, luci.util.pcdata(c), tag))
+                end
+
+                table.insert(html, "<tr>" .. table.concat(tr) .. "</tr>")
+                rowIndex = rowIndex + 1
+            end
+        end
+    end
+
+    table.insert(html, "</table></div>")
+
+    if parsed then
+        return table.concat(html, "\n")
+    else
+        return string.format(
+            "<pre style='background:#f9f9f9;border:1px solid #ccc;padding:8px;white-space:pre-wrap;'>%s</pre>",
+            luci.util.pcdata(content)
+        )
+    end
 end
 
 btn2 = s:taboption("infos", Button, "btn2")
@@ -503,7 +667,6 @@ btn3info.cfgvalue = function(self, section)
     return string.format("<pre>%s</pre>", luci.util.pcdata(content))
 end
 
-
 btn4 = s:taboption("infos", Button, "btn4")
 btn4.inputtitle = translate("Route Info")
 btn4.description = translate("Click the button to refresh and view route information")
@@ -520,7 +683,88 @@ btn4info = s:taboption("infos", DummyValue, "btn4info")
 btn4info.rawhtml = true
 btn4info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_route") or ""
-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
+    content = luci.util.trim(content or "")
+
+    local html = {}
+    local parsed = false 
+
+    table.insert(html, [[
+        <div style="overflow:auto; max-width:100%;">
+        <table style="border-collapse:collapse;font-family:monospace;width:100%;">
+    ]])
+
+    local lines = {}
+    for line in content:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+
+    for rowIndex, line in ipairs(lines) do
+        if not line:match("^|%s*-") then
+            local cells = {}
+            for cell in line:gmatch("|%s*([^|]+)%s*") do
+                local value = luci.util.trim(cell)
+
+                if rowIndex == 1 then
+                    if value == "ipv4" then value = "IPv4地址"
+                    elseif value == "hostname" then value = "主机名"
+                    elseif value == "proxy_cidrs" then value = "代理网段"
+                    elseif value == "next_hop_ipv4" then value = "下一跳IPv4"
+                    elseif value == "next_hop_hostname" then value = "下一跳主机名"
+                    elseif value == "next_hop_lat" then value = "下一跳延迟"
+                    elseif value == "path_len" then value = "路径长度"
+                    elseif value == "path_latency" then value = "路径延迟"
+                    elseif value == "next_hop_ipv4_lat_first" then value = "首跳IPv4延迟"
+                    elseif value == "next_hop_hostname_lat_first" then value = "首跳主机名延迟"
+                    elseif value == "path_len_lat_first" then value = "首跳路径长度"
+                    elseif value == "path_latency_lat_first" then value = "首跳路径延迟"
+                    elseif value == "version" then value = "版本"
+                    end
+                else
+
+                    if value == "Local" then
+                        value = "本机"
+                    elseif value == "DIRECT" then
+                        value = "直连"
+                    end
+                end
+
+                table.insert(cells, value)
+            end
+
+            if #cells > 0 then
+                parsed = true
+                local tr = {}
+                for i, c in ipairs(cells) do
+                    local tag = rowIndex == 1 and "th" or "td"
+                    local style = "padding:4px;text-align:left;white-space:nowrap;border:1px solid #ccc;"
+
+                    if tag == "th" then
+                        style = "padding:6px;text-align:center;white-space:nowrap;border:1px solid #ccc;background:#f7f7f7;"
+                    elseif rowIndex % 2 == 0 then
+                        style = style .. "background:#fafafa;"
+                    else
+                        style = style .. "background:#ffffff;"
+                    end
+
+                    table.insert(tr, string.format("<%s style='%s'>%s</%s>",
+                        tag, style, luci.util.pcdata(c), tag))
+                end
+
+                table.insert(html, "<tr>" .. table.concat(tr) .. "</tr>")
+            end
+        end
+    end
+
+    table.insert(html, "</table></div>")
+
+    if parsed then
+        return table.concat(html, "\n")
+    else
+        return string.format(
+            "<pre style='background:#f9f9f9;border:1px solid #ccc;padding:8px;white-space:pre-wrap;'>%s</pre>",
+            luci.util.pcdata(content)
+        )
+    end
 end
 
 btn6 = s:taboption("infos", Button, "btn6")
@@ -539,7 +783,77 @@ btn6info = s:taboption("infos", DummyValue, "btn6info")
 btn6info.rawhtml = true
 btn6info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_peer-center") or ""
-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
+    content = luci.util.trim(content or "")
+
+    local html = {}
+    local parsed = false 
+
+    table.insert(html, [[
+        <div style="overflow:auto; max-width:100%;">
+        <table style="border-collapse:collapse;font-family:monospace;width:100%;">
+    ]])
+
+    local lines = {}
+    for line in content:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+
+    for rowIndex, line in ipairs(lines) do
+        if not line:match("^|%s*-") then
+            local cells = {}
+            for cell in line:gmatch("|%s*([^|]+)%s*") do
+                local value = luci.util.trim(cell)
+
+                if rowIndex == 1 then
+                    if value == "node_id" then
+                        value = "节点ID"
+                    elseif value == "hostname" then
+                        value = "主机名"
+                    elseif value == "ipv4" then
+                        value = "IPv4地址"
+                    elseif value == "direct_peers" then
+                        value = "直连节点"
+                    end
+                end
+
+                table.insert(cells, value)
+            end
+
+            if #cells > 0 then
+                parsed = true
+                local tr = {}
+                for i, c in ipairs(cells) do
+                    local tag = rowIndex == 1 and "th" or "td"
+                    local style = "padding:4px;text-align:left;white-space:nowrap;border:1px solid #ccc;"
+
+                    if tag == "th" then
+                        style = "padding:6px;text-align:center;white-space:nowrap;border:1px solid #ccc;background:#f0f0f0;"
+                    elseif rowIndex % 2 == 0 then
+                        style = style .. "background:#fafafa;"
+                    else
+                        style = style .. "background:#ffffff;"
+                    end
+
+                    table.insert(tr, string.format("<%s style='%s'>%s</%s>",
+                        tag, style, luci.util.pcdata(c), tag))
+                end
+                table.insert(html, "<tr>" .. table.concat(tr) .. "</tr>")
+            end
+        end
+    end
+
+    table.insert(html, "</table></div>")
+
+    if parsed then
+        -- 成功解析表格
+        return table.concat(html, "\n")
+    else
+        -- 没有表格 → 原样显示
+        return string.format(
+            "<pre style='background:#f9f9f9;border:1px solid #ccc;padding:8px;white-space:pre-wrap;'>%s</pre>",
+            luci.util.pcdata(content)
+        )
+    end
 end
 
 btn7 = s:taboption("infos", Button, "btn7")
@@ -577,7 +891,80 @@ btn8info = s:taboption("infos", DummyValue, "btn8info")
 btn8info.rawhtml = true
 btn8info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_proxy") or ""
-    return string.format("<pre>%s</pre>", luci.util.pcdata(content))
+    content = luci.util.trim(content or "")
+
+    local html = {}
+    local parsed = false 
+
+    table.insert(html, [[
+        <div style="overflow:auto; max-width:100%;">
+        <table style="border-collapse:collapse;font-family:monospace;width:100%;">
+    ]])
+
+    local lines = {}
+    for line in content:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+
+    for rowIndex, line in ipairs(lines) do
+        if not line:match("^|%s*-") then
+            local cells = {}
+            for cell in line:gmatch("|%s*([^|]+)%s*") do
+                local value = luci.util.trim(cell)
+
+                -- 表头关键词替换
+                if rowIndex == 1 then
+                    if value == "src" then
+                        value = "源地址"
+                    elseif value == "dst" then
+                        value = "目标地址"
+                    elseif value == "start_time" then
+                        value = "启动时间"
+                    elseif value == "state" then
+                        value = "状态"
+                    elseif value == "transport_type" then
+                        value = "传输类型"
+                    end
+                end
+
+                table.insert(cells, value)
+            end
+
+            if #cells > 0 then
+                parsed = true
+                local tr = {}
+                for i, c in ipairs(cells) do
+                    local tag = rowIndex == 1 and "th" or "td"
+                    local style = "padding:4px;text-align:left;white-space:nowrap;border:1px solid #ccc;"
+
+                    if tag == "th" then
+                        style = "padding:6px;text-align:center;white-space:nowrap;border:1px solid #ccc;background:#f0f0f0;"
+                    elseif rowIndex % 2 == 0 then
+                        style = style .. "background:#fafafa;"
+                    else
+                        style = style .. "background:#ffffff;"
+                    end
+
+                    table.insert(tr, string.format("<%s style='%s'>%s</%s>",
+                        tag, style, luci.util.pcdata(c), tag))
+                end
+
+                table.insert(html, "<tr>" .. table.concat(tr) .. "</tr>")
+            end
+        end
+    end
+
+    table.insert(html, "</table></div>")
+
+    if parsed then
+        return table.concat(html, "\n")
+    else
+        -- 没解析出表格，原样显示
+        return string.format(
+            "<pre style='background:#f9f9f9;border:1px solid #ccc;padding:8px;white-space:pre-wrap;'>%s</pre>",
+            luci.util.pcdata(content)
+        )
+    end
 end
 
 btn9 = s:taboption("infos", Button, "btn9")
@@ -616,6 +1003,134 @@ btn10info.rawhtml = true
 btn10info.cfgvalue = function(self, section)
     local content = nixio.fs.readfile("/tmp/easytier-cli_mapped_listener") or ""
     return string.format("<pre>%s</pre>", luci.util.pcdata(content))
+end
+
+btn11 = s:taboption("infos", Button, "btn11")
+btn11.inputtitle = translate("Stats")
+btn11.description = translate("Click the button to refresh and view statistics information")
+btn11.inputstyle = "apply"
+btn11.write = function()
+    if process_status ~= "" then
+        luci.sys.call("$(dirname $(uci -q get easytier.@easytier[0].easytierbin))/easytier-cli stats >/tmp/easytier-cli_stats 2>&1")
+    else
+        luci.sys.call("echo '错误：程序未运行！请启动程序后重新点击刷新' >/tmp/easytier-cli_stats")
+    end
+end
+
+btn11info = s:taboption("infos", DummyValue, "btn11info")
+btn11info.rawhtml = true
+btn11info.cfgvalue = function(self, section)
+    local content = nixio.fs.readfile("/tmp/easytier-cli_stats") or ""
+    content = luci.util.trim(content or "") 
+
+    local translate_map = { 
+        ["Metric Name"] = "指标名称", 
+        ["Value"] = "值",
+        ["Labels"] = "标签", 
+        ["compression_bytes_rx_after"]   = "接收压缩后字节数",
+        ["compression_bytes_rx_before"]  = "接收压缩前字节数", 
+        ["compression_bytes_tx_after"]   = "发送压缩后字节数",
+        ["compression_bytes_tx_before"]  = "发送压缩前字节数",
+        ["peer_rpc_client_rx"]           = "客户端 RPC 接收数",
+        ["peer_rpc_client_tx"]           = "客户端 RPC 发送数",
+        ["peer_rpc_duration_ms"]         = "RPC 时长 (毫秒)",
+        ["peer_rpc_server_rx"]           = "服务端 RPC 接收数",
+        ["peer_rpc_server_tx"]           = "服务端 RPC 发送数",
+        ["traffic_bytes_rx"]             = "接收字节数",
+        ["traffic_bytes_self_rx"]        = "自身接收字节数",
+        ["traffic_bytes_self_tx"]        = "自身发送字节数",
+        ["traffic_bytes_tx"]             = "发送字节数",
+        ["traffic_packets_rx"]           = "接收包数",
+        ["traffic_packets_self_rx"]      = "自身接收包数",
+        ["traffic_packets_self_tx"]      = "自身发送包数",
+        ["traffic_packets_tx"]           = "发送包数",
+        ["network_name"]        = "网络名称",
+        ["dst_peer_id"]         = "目标节点ID",
+        ["src_peer_id"]         = "源节点ID",
+        ["method_name"]         = "方法名称",
+        ["service_name"]        = "服务名称",
+        ["status"]              = "状态",
+        ["success"]             = "成功",
+        ["get_global_peer_map"] = "获取全局节点映射",
+        ["PeerCenterRpc"]       = "节点中心RPC",
+        ["report_peers"]        = "上报节点",
+        ["sync_route_info"]     = "同步路由信息",
+        ["OspfRouteRpc"]        = "OSPF路由RPC"
+    }
+
+    local function escape_lua_pattern(s) 
+        return s:gsub("(%W)","%%%1") 
+    end 
+
+    local html = {} 
+    table.insert(html, [[ 
+        <div style="overflow:auto; max-width:100%;">
+        <table style="border-collapse:collapse;width:100%;font-family:monospace;">
+    ]]) 
+
+    local lines = {}
+    for line in content:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+
+    local parsed = false
+    local tableRows = {}
+
+    for rowIndex, line in ipairs(lines) do
+        if not line:match("^|%s*-") then
+            local cells = {}
+            for cell in line:gmatch("|%s*([^|]+)%s*") do
+                local value = luci.util.trim(cell)
+                if rowIndex == 1 then
+                    if translate_map[value] then
+                        value = translate_map[value]
+                    else
+                        for k, v in pairs(translate_map) do
+                            local k_esc = escape_lua_pattern(k)
+                            value = value:gsub(k_esc, v)
+                        end 
+                    end
+                else
+                    for k, v in pairs(translate_map) do
+                        local k_esc = escape_lua_pattern(k)
+                        value = value:gsub(k_esc, v)
+                    end 
+                end
+                table.insert(cells, value) 
+            end
+
+            if #cells > 0 then
+                parsed = true
+                local tr = {}
+                for i, c in ipairs(cells) do
+                    local tag = (rowIndex == 1) and "th" or "td" 
+                    local style = "padding:4px;text-align:left;white-space:nowrap;border:1px solid #ccc;"
+                    if tag == "th" then
+                        style = "padding:6px;text-align:center;white-space:nowrap;border:1px solid #ccc;background:#f0f0f0;" 
+                    elseif rowIndex % 2 == 0 then
+                        style = style .. "background:#fafafa;"
+                    else 
+                        style = style .. "background:#ffffff;"
+                    end
+                    table.insert(tr, string.format("<%s style='%s'>%s</%s>", tag, style, luci.util.pcdata(c), tag))
+                end
+                table.insert(tableRows, "<tr>" .. table.concat(tr) .. "</tr>")
+            end
+        end
+    end
+
+    if parsed then
+        for _, rowHtml in ipairs(tableRows) do
+            table.insert(html, rowHtml)
+        end 
+        table.insert(html, "</table></div>")
+        return table.concat(html, "\n")
+    else
+        return string.format( 
+            "<pre style='background:#f9f9f9;border:1px solid #ccc;padding:8px;white-space:pre-wrap;'>%s</pre>",
+            luci.util.pcdata(content) 
+        ) 
+    end
 end
 
 btn5 = s:taboption("infos", Button, "btn5")
@@ -733,7 +1248,8 @@ http.setfilehandler(
 
             os.execute("chmod +x /tmp/easytier-core")
             os.execute("chmod +x /tmp/easytier-cli")
-		    os.execute("chmod +x /tmp/easytier-web-embed")
+            os.execute("chmod +x /tmp/easytier-web-embed")
+		   
         end
     end
 )
@@ -775,6 +1291,9 @@ web_port.datatype = "range(1,65535)"
 web_port.placeholder = "22020"
 web_port.default = "22020"
 
+fw_web = s:option(Flag, "fw_web", translate("WAN access to WEB"),
+        translate("Automatically add firewall rules to allow WAN access to this WEB console"))
+        
 api_port = s:option(Value, "api_port", translate("API Port"),
         translate("Listening port of the RESTful server, used as ApiHost by the web frontend. (-a parameter)"))
 api_port.datatype = "range(1,65535)"
@@ -786,26 +1305,12 @@ html_port = s:option(Value, "html_port", translate("Web Interface Port"),
 html_port.datatype = "range(1,65535)"
 html_port.default = "11211"
 
-local router_ip = luci.sys.exec("uci -q get network.lan.ipaddr"):gsub("\n", "")
-local default_api_port = api_port.default or "11211"
+fw_api = s:option(Flag, "fw_api", translate("WAN access to API"),
+        translate("Automatically add firewall rules to allow WAN access to the API control page"))
+        
 api_host = s:option(Value, "api_host", translate("Default API Server URL"),
         translate("The URL of the API server, used for connecting the web frontend. (--api-host parameter)<br>"
                 .. "Example: http://[current device IP or resolved domain name]:[API port]"))
-api_host.placeholder = "http://" .. router_ip .. ":" .. default_api_port
-api_host.default = "http://" .. router_ip .. ":" .. default_api_port
-api_host.validate = function(self, value, section)
-    local port_val = api_port:formvalue(section) or default_api_port
-    if not port_val or port_val == "" then
-        port_val = default_api_port
-    end
-    local port_in_api_host = string.match(value, ":(%d+)$")
-    if port_in_api_host ~= port_val then
-        local new_value = string.gsub(value, ":%d+$", "")
-        new_value = new_value .. ":" .. port_val
-        return new_value
-    end
-    return value
-end
 
 geoip_db = s:option(Value, "geoip_db", translate("GEOIP_DB Path"),
         translate("GeoIP2 database file path used to locate the client. Defaults to an embedded file (country-level information only)."
@@ -824,3 +1329,4 @@ weblog:value("debug", translate("Debug"))
 weblog:value("trace", translate("Trace"))
 
 return m
+

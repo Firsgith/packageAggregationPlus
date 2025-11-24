@@ -1,7 +1,7 @@
 name: Build-OpenWrt-EasyTier
 
 on:
-  push:
+  #push:
   workflow_dispatch:
     inputs:
       tag:
@@ -42,32 +42,50 @@ jobs:
           - arm_cortex-a9_neon
           - arm_cortex-a9_vfpv3-d16
           - arm_fa526
-          - arm_mpcore
+          #- arm_mpcore
           - arm_xscale
           - mips_24kc
-          - mips_4kec
+          #- mips_4kec
           - mips_mips32
           - mipsel_24kc
           - mipsel_24kc_24kf
           - mipsel_74kc
           - mipsel_mips32
           - x86_64
+          
         sdk:
-          - openwrt-22.03
+          - 22.03.7
           - SNAPSHOT
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+      - name: Cache OpenWrt SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/openwrt-sdk-${{ matrix.arch }}-${{ matrix.sdk }}
+            dl
+          key: sdk-${{ matrix.arch }}-${{ matrix.sdk }}
+          
+      - name: Overwrite i18n file
+        run: |
+          cat > luci-app-easytier/root/etc/uci-defaults/luci-i18n-easytier-zh-cn << 'EOF'
+          #!/bin/sh
+          exit 0
+          EOF
+          
       - name: Building packages
-        uses: sbwml/openwrt-gh-action-sdk@main
+        uses: openwrt/gh-action-sdk@main
         env:
           ARCH: ${{ matrix.arch }}-${{ matrix.sdk }}
           FEEDNAME: packages_ci
           PACKAGES: easytier luci-app-easytier
-          NO_REFRESH_CHECK: true
+          #NO_DEFAULT_FEEDS: 1
+          NO_REFRESH_CHECK: 1
+          NO_SHFMT_CHECK: 1
+          MAKEFLAGS: -j$(nproc)
           V: s
 
       - name: Upload artifacts
@@ -78,8 +96,10 @@ jobs:
 
       - name: Create compress files
         run: |
+          sudo timedatectl set-timezone "Asia/Shanghai"
+          echo "build_time=$(TZ=UTC-8 date '+%Y年%m月%d日%H:%M:%S' | jq -sRr @uri)" >> $GITHUB_ENV
           #tar -zcvf EasyTier-${{ matrix.sdk }}-${{ matrix.arch }}.tar.gz -C bin/packages/${{ matrix.arch }}/ packages_ci
-          zip -j EasyTier-${{ matrix.arch }}-${{ matrix.sdk }}.zip bin/packages/${{ matrix.arch }}/packages_ci/*
+          zip -j EasyTier-${{ env.TAG }}-${{ matrix.arch }}-${{ matrix.sdk }}.zip bin/packages/${{ matrix.arch }}/packages_ci/*
 
       - name: Release
         if: ${{ github.event.inputs.tag != '' }}
@@ -88,7 +108,9 @@ jobs:
             token: ${{ secrets.GITHUB_TOKEN }}
             body: |
 
-             - 其中 **`openwrt-22.03`** 里面是ipk安装包 **`SNAPSHOT`** 里面是apk安装包
+             > ### ![](https://img.shields.io/badge/%E7%BC%96%E8%AF%91%E6%97%B6%E9%97%B4-${{ env.build_time }}-easytier?logo=github&labelColor=%E9%A1%BB)![](https://img.shields.io/github/downloads/${{ github.repository }}/${{ env.TAG }}/total?label=%E4%B8%8B%E8%BD%BD%E6%AC%A1%E6%95%B0&logo=github)
+
+             - 其中 **`22.03.7`** 里面是ipk安装包 **`SNAPSHOT`** 里面是apk安装包
 
              - **`*.apk` 是OpenWrt新版的APK包** 对于apk包跳过证书命令
              `apk add --allow-untrusted luci-app-easytier.apk`
@@ -96,5 +118,5 @@ jobs:
              ${{ github.event.inputs.text }}
            
             tag_name: ${{ env.TAG }}
-            files: EasyTier-${{ matrix.arch }}-${{ matrix.sdk }}.zip
+            files: EasyTier-${{ env.TAG }}-${{ matrix.arch }}-${{ matrix.sdk }}.zip
  

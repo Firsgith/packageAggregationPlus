@@ -24,6 +24,28 @@ function addAlgorithms(o, algorithms) {
 	});
 }
 
+function sectionNameCheck(extra_class) {
+	var el = form.GridSection.prototype.renderSectionAdd.apply(this, arguments),
+		nameEl = el.querySelector('.cbi-section-create-name');
+	ui.addValidator(nameEl, 'uciname', true, function(v) {
+		let sections = [
+			...uci.sections('ipsec', 'remote'),
+			...uci.sections('ipsec', 'tunnel'),
+			...uci.sections('ipsec', 'crypto_proposal'),
+			...uci.sections('ipsec', 'pools')
+		];
+		if (sections.find(function(s) {
+			return s['.name'] == v;
+		})) {
+			return _('Remotes, Encryption Proposals, Pools and Tunnels may not share the same names.') + ' ' + 
+				_('Use combinations like tunnel1_phase1 that do not exceed 15 characters.');
+		}
+		if (v.length > 15) return _('Name length shall not exceed 15 characters');
+		return true;
+	}, 'blur', 'keyup');
+	return el;
+};
+
 return view.extend({
 	load: function () {
 		return uci.load('network');
@@ -39,6 +61,13 @@ return view.extend({
 		// strongSwan General Settings
 		s = m.section(form.TypedSection, 'ipsec', _('General Settings'));
 		s.anonymous = true;
+		s.addremove = true;
+
+
+		o = s.option(widgets.ZoneSelect, 'zone', _('Zone'),
+			_('Firewall zone that has to match the defined firewall zone'));
+		o.default = 'lan';
+		o.multiple = true;
 
 		o = s.option(widgets.NetworkSelect, 'listen', _('Listening Interfaces'),
 			_('Interfaces that accept VPN traffic'));
@@ -70,6 +99,7 @@ return view.extend({
 			_('Define Remote IKE Configurations.'));
 		s.addremove = true;
 		s.nodescriptions = true;
+		s.renderSectionAdd = sectionNameCheck;
 
 		o = s.tab('general', _('General'));
 		o = s.tab('authentication', _('Authentication'));
@@ -83,6 +113,11 @@ return view.extend({
 			_('IP address or FQDN name of the tunnel remote endpoint'));
 		o.datatype = 'or(hostname,ipaddr)';
 		o.rmempty = false;
+
+		o = s.taboption('general', form.Value, 'local_gateway', _('Local Gateway'),
+			_('IP address or FQDN of the tunnel local endpoint'));
+		o.datatype = 'or(hostname,ipaddr)';
+		o.modalonly = true;
 
 		o = s.taboption('general', form.Value, 'local_ip', _('Local IP'),
 			_('Local address(es) to use in IKE negotiation'));
@@ -144,7 +179,7 @@ return view.extend({
 		o.rmempty = false;
 
 		o = s.taboption('general', form.MultiValue, 'tunnel', _('Tunnel'),
-			_('Name of ESP (phase 2) section'));
+			_('The Tunnel containing the ESP (phase 2) section'));
 		o.load = function (section_id) {
 			this.keylist = [];
 			this.vallist = [];
@@ -162,6 +197,7 @@ return view.extend({
 		};
 		o.rmempty = false;
 
+		// 认证配置
 		o = s.taboption('authentication', form.ListValue, 'authentication_method',
 			_('Authentication Method'), _('IKE authentication (phase 1)'));
 		o.modalonly = true;
@@ -205,7 +241,7 @@ return view.extend({
 		o.depends('authentication_method', 'pubkey');
 		o.modalonly = true;
 
-
+		// 高级配置
 		o = s.taboption('advanced', form.Flag, 'mobike', _('MOBIKE'),
 			_('MOBIKE (IKEv2 Mobility and Multihoming Protocol)'));
 		o.default = '1';
@@ -260,6 +296,7 @@ return view.extend({
 			_('Define Connection Children to be used as Tunnels in Remote Configurations.'));
 		s.addremove = true;
 		s.nodescriptions = true;
+		s.renderSectionAdd = sectionNameCheck;
 
 		o = s.tab('general', _('General'));
 		o = s.tab('advanced', _('Advanced'));
@@ -393,6 +430,7 @@ return view.extend({
 			_('Configure Cipher Suites to define IKE (Phase 1) or ESP (Phase 2) Proposals.'));
 		s.addremove = true;
 		s.nodescriptions = true;
+		s.renderSectionAdd = sectionNameCheck;
 
 		o = s.option(form.Flag, 'is_esp', _('ESP Proposal'),
 			_('Whether this is an ESP (phase 2) proposal or not'));
@@ -403,7 +441,6 @@ return view.extend({
 		o.default = 'aes256gcm128';
 		addAlgorithms(o, strongswan_algorithms.getEncryptionAlgorithms());
 		addAlgorithms(o, strongswan_algorithms.getAuthenticatedEncryptionAlgorithms());
-
 
 		o = s.option(form.ListValue, 'hash_algorithm', _('Hash Algorithm'),
 			_('Algorithms marked with * are considered insecure'));
@@ -440,6 +477,7 @@ return view.extend({
 			_('Define IP Address Pools for VPN Clients.'));
 		s.addremove = true;
 		s.nodescriptions = true;
+		s.renderSectionAdd = sectionNameCheck;
 
 		o = s.option(form.Value, 'addrs', _('Pool Address'),
 			_('IP address range for the pool.'));
@@ -457,7 +495,7 @@ return view.extend({
 		o.rows = 30;
 		o.readonly = true;
 		o.load = function(section_id) {
-			return L.resolveDefault(fs.read('/var/swanctl/swanctl.conf'), 'no result swanctl.conf file').then(function(content) {
+			return L.resolveDefault(fs.read('/var/swanctl/swanctl.conf'), _('swanctl.conf file not found')).then(function(content) {
 				return content;
 			});
 		};

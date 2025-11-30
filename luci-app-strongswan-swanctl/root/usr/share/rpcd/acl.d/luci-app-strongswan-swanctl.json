@@ -1,0 +1,17 @@
+{
+	"luci-app-strongswan-swanctl": {
+		"description": "Grant access to luci-app-strongswan-swanctl",
+		"read": {
+			"file": {
+				"/usr/sbin/swanmon version": [ "exec" ],
+				"/usr/sbin/swanmon stats": [ "exec" ],
+				"/usr/sbin/swanmon list-sas": [ "exec" ],
+				"/var/swanctl/swanctl.conf": [ "read" ]
+			},
+			"uci": [ "ipsec" ]
+		},
+		"write": {
+			"uci": [ "ipsec" ]
+		}
+	}
+}

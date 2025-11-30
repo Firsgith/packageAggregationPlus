@@ -2,6 +2,7 @@ luci-app-tailscale
 luci-app-wolplus
 luci-app-poweroffdevice
 luci-app-easytier
+luci-app-strongswan-swanctl
 OpenClash
 OpenWrt-nikki
 luci-app-zerotier

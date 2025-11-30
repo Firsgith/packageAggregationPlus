@@ -1,3 +1,18 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: strongSwan swanctl LuCI\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+# 通用术语
 msgid "VPN"
 msgstr "虚拟专有网络"
 
@@ -7,6 +22,13 @@ msgstr "IPsec VPN"
 msgid "strongSwan Status"
 msgstr "strongSwan 状态"
 
+msgid "strongSwan Configuration"
+msgstr "strongSwan 配置"
+
+msgid "Configure strongSwan for secure VPN connections."
+msgstr "配置 strongSwan 以建立安全的 VPN 连接"
+
+# 状态页面
 msgid "Querying strongSwan failed"
 msgstr "查询 strongSwan 失败"
 
@@ -16,38 +38,158 @@ msgstr "连接失败"
 msgid "Connection refused"
 msgstr "连接被拒绝"
 
-msgid "strongSwan Configuration"
-msgstr "strongSwan 配置"
+msgid "Stats"
+msgstr "统计"
 
-msgid "Configure strongSwan for secure VPN connections."
-msgstr "配置 strongSwan 以建立安全的 VPN 连接"
+msgid "Version"
+msgstr "版本"
 
+msgid "Uptime"
+msgstr "运行时间"
+
+msgid "Daemon"
+msgstr "守护进程"
+
+msgid "Active IKE_SAs"
+msgstr "活动 IKE_SA"
+
+msgid "Half-Open IKE_SAs"
+msgstr "半开 IKE_SA"
+
+msgid "Security Associations (SAs)"
+msgstr "安全关联（SAs）"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "State"
+msgstr "状态"
+
+msgid "Remote"
+msgstr "远端"
+
+msgid "IKE Version"
+msgstr "IKE 版本"
+
+msgid "Established for"
+msgstr "建立于"
+
+msgid "Reauthentication in"
+msgstr "重新认证于"
+
+msgid "Details"
+msgstr "详细信息"
+
+msgid "Show Details"
+msgstr "显示详细信息"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "CHILD_SAs"
+msgstr "子安全关联"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Protocol"
+msgstr "协议"
+
+msgid "Local Traffic Selectors"
+msgstr "本地流量选择器"
+
+msgid "Remote Traffic Selectors"
+msgstr "远程流量选择器"
+
+msgid "Encryption Algorithm"
+msgstr "加密算法"
+
+msgid "Encryption Keysize"
+msgstr "加密密钥大小"
+
+msgid "Bytes in"
+msgstr "接收字节数"
+
+msgid "Bytes out"
+msgstr "发送字节数"
+
+msgid "Life Time"
+msgstr "生存时间"
+
+msgid "Install Time"
+msgstr "安装时间"
+
+msgid "Rekey in"
+msgstr "重新密钥剩余时间"
+
+msgid "SPI in"
+msgstr "输入SPI"
+
+msgid "SPI out"
+msgstr "输出SPI"
+
+# 时间单位
+msgid "Day"
+msgstr "天"
+
+msgid "Days"
+msgstr "天"
+
+msgid "Hour"
+msgstr "小时"
+
+msgid "Hours"
+msgstr "小时"
+
+msgid "Minute"
+msgstr "分钟"
+
+msgid "Minutes"
+msgstr "分钟"
+
+msgid "Second"
+msgstr "秒"
+
+msgid "Seconds"
+msgstr "秒"
+
+# 通用设置
+msgid "General Settings"
+msgstr "通用设置"
+
+msgid "Listening Interfaces"
+msgstr "监听接口"
+
+msgid "Interfaces that accept VPN traffic"
+msgstr "接受 VPN 流量的接口"
+
+msgid "Select an interface or leave empty for all interfaces"
+msgstr "选择一个接口或留空以选择所有接口"
+
+msgid "Install Virtual IP Interface"
+msgstr "安装虚拟 IP 接口"
+
+msgid "Interface to install virtual IP on."
+msgstr "要安装虚拟 IP 的接口"
+
+msgid "Install Route"
+msgstr "安装路由"
+
+msgid "Install routes into a separate routing table for established IPsec tunnels."
+msgstr "为已建立的 IPsec 隧道安装路由到单独的路由表中。"
+
+msgid "Debug Level"
+msgstr "调试级别"
+
+msgid "Trace level: 0 is least verbose, 4 is most"
+msgstr "跟踪级别：0 是最不详细的，4 是最详细的"
+
+# 远程配置
 msgid "Remote Configuration"
 msgstr "对端配置"
 
 msgid "Define Remote IKE Configurations."
 msgstr "定义远端 IKE 配置。"
-
-msgid "Tunnel Configuration"
-msgstr "隧道配置"
-
-msgid "Define Connection Children to be used as Tunnels in Remote Configurations."
-msgstr "定义要在远端配置中用作隧道的连接子项。"
-
-msgid "Encryption Proposals"
-msgstr "加密提议"
-
-msgid "Configure Cipher Suites to define IKE (Phase 1) or ESP (Phase 2) Proposals."
-msgstr "配置密码套件以定义 IKE（第 1 阶段）或 ESP（第 2 阶段）提议。"
-
-msgid "Gateway (Remote Endpoint)"
-msgstr "网关（远端点）"
-
-msgid "Crypto Proposal"
-msgstr "加密提议"
-
-msgid "Tunnel"
-msgstr "隧道"
 
 msgid "General"
 msgstr "常规"
@@ -55,17 +197,38 @@ msgstr "常规"
 msgid "Advanced"
 msgstr "高级"
 
+msgid "Authentication"
+msgstr "认证"
+
+msgid "Enabled"
+msgstr "已启用"
+
 msgid "Configuration is enabled or not"
 msgstr "配置是否启用"
+
+msgid "Gateway (Remote Endpoint)"
+msgstr "网关（远端点）"
 
 msgid "IP address or FQDN name of the tunnel remote endpoint"
 msgstr "隧道远端点的 IP 地址或 FQDN 名称"
 
-msgid "Local Gateway"
-msgstr "本地网关"
+msgid "Local IP"
+msgstr "本地IP"
 
-msgid "IP address or FQDN of the tunnel local endpoint"
-msgstr "隧道本地端点的 IP 地址或 FQDN 名称"
+msgid "Local address(es) to use in IKE negotiation"
+msgstr "在 IKE 协商中使用的本地地址"
+
+msgid "Gateway Type"
+msgstr "网关类型"
+
+msgid "Type of the local gateway."
+msgstr "本地安全网关的类型"
+
+msgid "Initiator"
+msgstr "发起端"
+
+msgid "Responder"
+msgstr "响应端"
 
 msgid "Local Source IP"
 msgstr "本地源 IP"
@@ -73,20 +236,45 @@ msgstr "本地源 IP"
 msgid "Virtual IP(s) to request in IKEv2 configuration payloads requests"
 msgstr "在 IKEv2 配置负载请求中请求的虚拟 IP"
 
-msgid "Local address(es) to use in IKE negotiation"
-msgstr "在 IKE 协商中使用的本地地址"
+msgid "Address Pools"
+msgstr "地址池"
+
+msgid "IP address assign to the remote peer from the pool."
+msgstr "从地址池分配给远程对等体的 IP 地址"
+
+msgid "Please create a Pool first"
+msgstr "请先创建地址池"
+
+msgid "Crypto Proposal"
+msgstr "加密提议"
 
 msgid "List of IKE (phase 1) proposals to use for authentication"
 msgstr "用于认证的 IKE（第 1 阶段）提议列表"
 
+msgid "Please create a Proposal first"
+msgstr "请先创建提议"
+
+msgid "Tunnel"
+msgstr "隧道"
+
 msgid "Name of ESP (phase 2) section"
 msgstr "ESP（第 2 阶段）部分的名称"
 
+msgid "Please create a Tunnel first"
+msgstr "请先创建隧道"
+
+# 认证设置
 msgid "Authentication Method"
 msgstr "认证方法"
 
 msgid "IKE authentication (phase 1)"
 msgstr "IKE 认证（第 1 阶段）"
+
+msgid "Pre-shared Key"
+msgstr "预共享密钥"
+
+msgid "Public Key"
+msgstr "公钥"
 
 msgid "Local Identifier"
 msgstr "本地标识符"
@@ -100,11 +288,17 @@ msgstr "远端标识符"
 msgid "Remote identifier for IKE (phase 1)"
 msgstr "IKE（第 1 阶段）的远端标识符"
 
-msgid "Pre-shared Key"
+msgid "Pre-Shared Key"
 msgstr "预共享密钥"
 
 msgid "The pre-shared key for the tunnel"
 msgstr "隧道的预共享密钥"
+
+msgid "Local Certificate"
+msgstr "本地证书"
+
+msgid "Certificate pathname to use for authentication"
+msgstr "用于认证的证书路径名"
 
 msgid "Local Key"
 msgstr "本地密钥"
@@ -112,20 +306,15 @@ msgstr "本地密钥"
 msgid "Private key pathname to use with above certificate"
 msgstr "与上述证书一起使用的私钥路径名"
 
-msgid "Pre-shared Key"
-msgstr "预共享密钥"
-
-msgid "Public Key"
-msgstr "公钥"
-
-msgid "Local certificate"
-msgstr "本地证书"
-
-msgid "CA certificate"
+msgid "CA Certificate"
 msgstr "CA 证书"
 
 msgid "CA certificate that need to lie in remote peer's certificate's path of trust"
 msgstr "需要位于远程对等体证书信任路径中的 CA 证书"
+
+# 高级设置
+msgid "MOBIKE"
+msgstr "MOBIKE"
 
 msgid "MOBIKE (IKEv2 Mobility and Multihoming Protocol)"
 msgstr "MOBIKE（IKEv2 移动性和多宿主协议）"
@@ -145,10 +334,13 @@ msgstr "初始协商期间的重传尝试次数"
 msgid "DPD Delay"
 msgstr "DPD 延迟"
 
+msgid "Interval to check liveness of a peer"
+msgstr "检查对等体活跃度的间隔"
+
 msgid "Inactivity"
 msgstr "超时释放"
 
-msgid "Interval to check liveness of a peer"
+msgid "Interval before closing an inactive CHILD_SA"
 msgstr "在关闭不活动的 CHILD_SA 之前的间隔"
 
 msgid "Rekey Time"
@@ -169,6 +361,19 @@ msgstr "协商协议"
 msgid "Version of IKE for negotiation"
 msgstr "用于协商的 IKE 版本"
 
+msgid "deprecated"
+msgstr "已弃用"
+
+msgid "both"
+msgstr "两者"
+
+# 隧道配置
+msgid "Tunnel Configuration"
+msgstr "隧道配置"
+
+msgid "Define Connection Children to be used as Tunnels in Remote Configurations."
+msgstr "定义要在远端配置中用作隧道的连接子项。"
+
 msgid "Local Subnet"
 msgstr "本地子网"
 
@@ -180,6 +385,12 @@ msgstr "远程子网"
 
 msgid "Remote network(s)"
 msgstr "远程保护子网"
+
+msgid "Local NAT"
+msgstr "本地NAT"
+
+msgid "NAT range for tunnels with overlapping IP addresses"
+msgstr "具有重叠IP地址的隧道的NAT范围"
 
 msgid "XFRM Interface ID"
 msgstr "XFRM 接口 ID"
@@ -205,6 +416,9 @@ msgstr "加密提议（第 2 阶段）"
 msgid "List of ESP (phase two) proposals. Only Proposals with checked ESP flag are selectable"
 msgstr "ESP（第 2 阶段）提议列表。只有选中 ESP 标志的提议才可选择"
 
+msgid "Please create an ESP Proposal first"
+msgstr "请先创建ESP提议"
+
 msgid "Up/Down Script Path"
 msgstr "Up/Down 脚本路径"
 
@@ -229,6 +443,9 @@ msgstr "重建时间"
 msgid "Duration of the CHILD_SA before rekeying"
 msgstr "重新生成 CHILD_SA 之前的持续时间"
 
+msgid "IPComp"
+msgstr "IP压缩"
+
 msgid "Enable ipcomp compression"
 msgstr "启用 ipcomp 压缩"
 
@@ -237,6 +454,9 @@ msgstr "硬件卸载"
 
 msgid "Enable Hardware offload"
 msgstr "启用硬件卸载"
+
+msgid "Priority"
+msgstr "优先级"
 
 msgid "Priority of the CHILD_SA"
 msgstr "CHILD_SA 的优先级"
@@ -250,14 +470,18 @@ msgstr "CHILD_SA 的重放窗口"
 msgid "Values larger than 32 are supported by the Netlink backend only"
 msgstr "仅 Netlink 后端支持大于 32 的值"
 
-msgid "ESP Proposals"
+# 加密提议
+msgid "Encryption Proposals"
+msgstr "加密提议"
+
+msgid "Configure Cipher Suites to define IKE (Phase 1) or ESP (Phase 2) Proposals."
+msgstr "配置密码套件以定义 IKE（第 1 阶段）或 ESP（第 2 阶段）提议。"
+
+msgid "ESP Proposal"
 msgstr "ESP 提议"
 
 msgid "Whether this is an ESP (phase 2) proposal or not"
 msgstr "这是否是 ESP（第 2 阶段）提议"
-
-msgid "Encryption Algorithm"
-msgstr "加密算法"
 
 msgid "Algorithms marked with * are considered insecure"
 msgstr "标有 * 的算法被认为是不安全的"
@@ -265,108 +489,16 @@ msgstr "标有 * 的算法被认为是不安全的"
 msgid "Hash Algorithm"
 msgstr "哈希算法"
 
-msgid "ESP Proposal"
-msgstr "ESP 提议"
-
 msgid "Diffie-Hellman Group"
 msgstr "Diffie-Hellman 组"
 
 msgid "PRF Algorithm"
 msgstr "PRF 算法"
 
-msgid "Stats"
-msgstr "统计"
+msgid "PRF Algorithm must be configured when using an Authenticated Encryption Algorithm"
+msgstr "使用认证加密算法时必须配置PRF算法"
 
-msgid "Version"
-msgstr "版本"
-
-msgid "Daemon"
-msgstr "守护进程"
-
-msgid "Active IKE_SAs"
-msgstr "活动 IKE_SA"
-
-msgid "Half-Open IKE_SAs"
-msgstr "半开 IKE_SA"
-
-msgid "Security Associations (SAs)"
-msgstr "安全关联（SAs）"
-
-msgid "State"
-msgstr "状态"
-
-msgid "Remote"
-msgstr "远端"
-
-msgid "IKE Version"
-msgstr "IKE 版本"
-
-msgid "Established for"
-msgstr "建立于"
-
-msgid "Reauthentication in"
-msgstr "重新认证于"
-
-msgid "Details"
-msgstr "详细信息"
-
-msgid "Show Details"
-msgstr "显示详细信息"
-
-msgid "Configuration File"
-msgstr "配置文件"
-
-msgid "View the current strongSwan configuration file."
-msgstr "查看当前 strongSwan 配置文件。"
-
-msgid "Zone"
-msgstr "区域"
-
-msgid "Firewall zone that has to match the defined firewall zone"
-msgstr "必须与定义的防火墙区域匹配的防火墙区域"
-
-msgid "Listening Interfaces"
-msgstr "监听接口"
-
-msgid "Interfaces that accept VPN traffic"
-msgstr "接受 VPN 流量的接口"
-
-msgid "Debug Level"
-msgstr "调试级别"
-
-msgid "Trace level: 0 is least verbose, 4 is most"
-msgstr "跟踪级别：0 是最不详细的，4 是最详细的"
-
-msgid "Install Virtual IP Interface"
-msgstr "安装虚拟 IP 接口"
-
-msgid "Interface to install virtual IP on."
-msgstr "要安装虚拟 IP 的接口"
-
-msgid "Install Route"
-msgstr "安装路由"
-
-msgid "Install routes into a separate routing table for established IPsec tunnels."
-msgstr "为已建立的 IPsec 隧道安装路由到单独的路由表中。"
-
-msgid "Pre-Shared Key"
-msgstr "预共享密钥"
-
-msgid "Public Key"
-msgstr "公钥"
-
-msgid "Local Certificate"
-msgstr "本地证书"
-
-msgid "Certificate pathname to use for authentication"
-msgstr "用于认证的证书路径名"
-
-msgid "CA Certificate"
-msgstr "CA 证书"
-
-msgid "Interval before closing an inactive CHILD_SA"
-msgstr "在关闭不活动的 CHILD_SA 之前的间隔"
-
+# 地址池配置
 msgid "Pool Configuration"
 msgstr "地址池配置"
 
@@ -379,20 +511,22 @@ msgstr "地址池地址"
 msgid "IP address range for the pool."
 msgstr "地址池的 IP 地址范围。"
 
-msgid "Gateway Type"
-msgstr "网关类型"
+# 配置文件
+msgid "Configuration File"
+msgstr "配置文件"
 
-msgid "Type of the local gateway."
-msgstr "本地安全网关的类型"
+msgid "View the current strongSwan configuration file."
+msgstr "查看当前 strongSwan 配置文件。"
 
-msgid "Initiator"
-msgstr "发起端"
+msgid "swanctl.conf"
+msgstr "swanctl.conf"
 
-msgid "Responder"
-msgstr "响应端"
+msgid "Contents of the swanctl.conf file."
+msgstr "swanctl.conf文件的内容。"
 
-msgid "Address Pools"
-msgstr "地址池"
+msgid "no result swanctl.conf file"
+msgstr "未找到swanctl.conf文件"
 
-msgid "IP address assign to the remote peer from the pool."
-msgstr "从地址池分配给远程对等体的 IP 地址"
+# 验证错误
+msgid "Number must have suffix s, m, h or d"
+msgstr "数字必须带有后缀s、m、h或d"

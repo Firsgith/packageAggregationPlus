@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=LuCI for Zerotier
 LUCI_DEPENDS:=+zerotier
 
-include $(TOPDIR)/feeds/luci/luci.mk
+include ../../luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
 

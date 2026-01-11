@@ -53,7 +53,7 @@
 #https://github.com/immortalwrt/packages.git,net/sing-box;
 #https://github.com/openwrt/packages.git,utils/swanmon;
 #https://github.com/Siriling/5G-Modem-Support.git,quectel_cm_5G
-https://github.com/asvow/luci-app-tailscale.git;
+https://github.com/Firsgith/luci-app-tailscale.git;
 https://github.com/Firsgith/luci-app-wolplus.git;
 https://github.com/sirpdboy/luci-app-poweroffdevice.git;
 https://github.com/Firsgith/luci-app-easytier.git;
